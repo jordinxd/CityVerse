@@ -3,6 +3,57 @@ window.onload = setup;
 var measure;
 var viewer;
 
+function createTextBillboard(text) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 256;
+
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "yellow";
+    ctx.font = "bold 48px sans-serif";
+    ctx.fillText(text, 20, 130);
+
+    return canvas.toDataURL();
+}
+
+async function fetchBackendMessage() {
+    try {
+        const response = await fetch("http://localhost:3000/api/hello");
+        const data = await response.json();
+
+        console.log("Backend says:", data.message);
+
+        // get position using XY
+        const pos = latlonFromXY(220, 70);
+
+        const backendLabel = viewer.entities.add({
+    id: "BackendLabel",
+    position: Cesium.Cartesian3.fromDegrees(pos.lat, pos.lon, 80),
+    label: {
+        text: data.message,
+        font: "30px sans-serif",
+        fillColor: Cesium.Color.YELLOW,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        showBackground: true,
+        backgroundColor: Cesium.Color.BLACK.withAlpha(0.4),
+    }
+});
+
+viewer.flyTo(backendLabel);
+
+
+    } catch (err) {
+        console.error("Failed to fetch backend data:", err);
+    }
+}
+
+
+
 function setup() {
     const west = 5.798212900532118;
     const south = 53.19304584690279;
@@ -31,11 +82,30 @@ function setup() {
         shouldAnimate: true,
     });
 
+    viewer.scene.primitives.destroyPrimitives = false;
+viewer.scene.primitives.add(new Cesium.LabelCollection());
     viewer.imageryLayers.removeAll();
     viewer.imageryLayers.addImageryProvider(osm);
 
     //Improves tile quality
     viewer.scene.globe.maximumScreenSpaceError = 1;
+
+    const testLabel = viewer.entities.add({
+    id: "TestLabel",
+    position: Cesium.Cartesian3.fromDegrees(5.787759928698073, 53.197831145908, 50),
+    label: {
+        text: "TEST LABEL",
+        font: "30px sans-serif",
+        fillColor: Cesium.Color.YELLOW,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        showBackground: true,
+        backgroundColor: Cesium.Color.BLACK.withAlpha(0.6),
+    }
+});
+
+viewer.flyTo(testLabel);
 
     // console.log(viewer.scene.globe.maximumScreenSpaceError);
 
@@ -84,6 +154,27 @@ function setup() {
     createModel("Cesium_Man.glb", latlonFromXY(220,70), 0);
 
     createModel("strange_building.glb", latlonFromXY(240,70), 0);
+
+    const pos = latlonFromXY(220, 70);
+
+fetchBackendMessage();
+
+    // const billboardEntity = viewer.entities.add({
+    //     id: "WelcomeBillboard",
+    //     position: Cesium.Cartesian3.fromDegrees(pos.lat, pos.lon, 80),
+    //     billboard: {
+    //         image: createTextBillboard("Welcome to CityVerse!"),
+    //         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+    //         scale: 1.0
+    //     }
+    // });
+
+// viewer.flyTo(billboardEntity);
+
+console.log("VIEWER CONTAINER:", viewer.container);
+console.log("VIEWER ELEMENT:", viewer._container);
+
+
 }
 
 // x = verplaatsing in meters noord (+) / zuid (-)
