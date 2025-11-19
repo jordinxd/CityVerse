@@ -8,6 +8,11 @@ import {
     createModel
 } from "./core/EntityFactory.js";
 
+import { ToolboxController } from "./ui/ToolboxController.js";
+import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
+import { loadAreas } from "./ui/drawing/AreaLoader.js";
+
+
 window.onload = () => {
     const viewer = createViewer();
 
@@ -41,37 +46,27 @@ window.onload = () => {
         setTimeout(moveCar, 150);
     }
     moveCar();
+    const toolbox = new ToolboxController();
 
-    // Example polygon
-    createPolygonFromXYs(viewer, [
-        [250, 72],
-        [230, 85],
-        [510, 185],
-        [520, 175]
-    ], Cesium.Color.WHITE);
-
-    // Restore the Spoordok (grey area) from previous version
-    const spoordokPositions = Cesium.Cartesian3.fromDegreesArray([
-        5.787759928698073, 53.197831145908,
-        5.789123554275904, 53.19763995957844,
-        5.788934967759822, 53.19602353198474,
-        5.776937964005922, 53.194528716741345,
-        5.774587885853288, 53.196901277127026,
-        5.774703939093954, 53.1976225789762,
-        5.786410809746187, 53.19704032421097,
-    ]);
-
-    const spoordok = viewer.entities.add({
-        id: "Spoordok",
-        polygon: {
-            hierarchy: spoordokPositions,
-            material: Cesium.Color.LIGHTGRAY.withAlpha(0.6),
-            outline: true,
-            outlineColor: Cesium.Color.BLACK,
-            perPositionHeight: false,
-        }
+    // Connect UI actions to Cesium actions
+    toolbox.on("drawArea", () => areaDrawer.start());
+    toolbox.on("finishArea", () => {
+        const name = prompt("Enter area name:");
+        if (name) areaDrawer.finish(name);
     });
-    viewer.flyTo(spoordok);
+
+    toolbox.on("cancelArea", () => areaDrawer.cancel());
+
+    toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
+    toolbox.on("placeRoad", () => structureDrawer.activate("road"));
+    toolbox.on("placeTree", () => structureDrawer.activate("tree"));
+
+    toolbox.on("deleteEntity", () => deleteController.start());
+
+    const areaDrawer = new AreaDrawer(viewer);
+    loadAreas(viewer); // Load saved areas on startup
+
+
 
     // Models
     createModel(viewer, "Cesium_Man.glb", latlonFromXY(220, 70), 0);
