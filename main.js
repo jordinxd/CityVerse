@@ -45,18 +45,8 @@ window.onload = () => {
     // Example boxes
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
 
-    let carX = 230, carY = 78;
-    const car = createBox(viewer, carX, carY, 5, 2, 1.5, 0, Cesium.Color.BLUE);
-
-    function moveCar() {
-        carX++;
-        carY += 0.35;
-        moveEntity(car, carX, carY);
-        setTimeout(moveCar, 150);
-    }
-    moveCar();
     const toolbox = new ToolboxController();
-
+   
     // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());
     toolbox.on("finishArea", () => {
