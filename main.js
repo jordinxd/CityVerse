@@ -11,9 +11,18 @@ import {
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
 import { loadAreas } from "./ui/drawing/AreaLoader.js";
+import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
+import { loadStructures } from "./ui/drawing/StructureLoader.js";
+// import { DeleteController } from "./ui/drawing/DeleteController.js";
 
 
 window.onload = () => {
+
+    document.addEventListener("click", (e) => {
+    e.preventDefault();
+}, {capture: true});
+
+
     const viewer = createViewer();
 
     // Example entities
@@ -58,14 +67,15 @@ window.onload = () => {
     toolbox.on("cancelArea", () => areaDrawer.cancel());
 
     toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
-    toolbox.on("placeRoad", () => structureDrawer.activate("road"));
     toolbox.on("placeTree", () => structureDrawer.activate("tree"));
+    toolbox.on("placeRoad", () => structureDrawer.activate("road"));
 
     toolbox.on("deleteEntity", () => deleteController.start());
 
     const areaDrawer = new AreaDrawer(viewer);
     loadAreas(viewer); // Load saved areas on startup
-
+    const structureDrawer = new StructureDrawer(viewer);
+    loadStructures(viewer);
 
 
     // Models

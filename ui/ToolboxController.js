@@ -11,7 +11,9 @@ export class ToolboxController {
 
     setupEvents() {
         const link = (id, action) => {
-            document.getElementById(id).onclick = () => {
+            document.getElementById(id).onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 if (this.callbacks[action]) {
                     this.callbacks[action]();
                 }
