@@ -13,7 +13,7 @@ import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
 import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
 import { loadStructures } from "./ui/drawing/StructureLoader.js";
-// import { DeleteController } from "./ui/drawing/DeleteController.js";
+import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 
 
 window.onload = () => {
@@ -59,23 +59,25 @@ window.onload = () => {
 
     // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());
-    toolbox.on("finishArea", () => {
-        const name = prompt("Enter area name:");
-        if (name) areaDrawer.finish(name);
-    });
+toolbox.on("finishArea", () => areaDrawer.finish(prompt("Name:")));
+toolbox.on("cancelArea", () => areaDrawer.cancel());
 
-    toolbox.on("cancelArea", () => areaDrawer.cancel());
+toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
+toolbox.on("placeRoad", () => structureDrawer.activate("road"));
+toolbox.on("placeTree", () => structureDrawer.activate("tree"));
 
-    toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
-    toolbox.on("placeTree", () => structureDrawer.activate("tree"));
-    toolbox.on("placeRoad", () => structureDrawer.activate("road"));
-
-    toolbox.on("deleteEntity", () => deleteController.start());
-
+toolbox.on("delete", () => deleteTool.activate());
+toolbox.on("deactivate", (action) => {
+    // Handle deactivation
+    areaDrawer.cancel();
+    structureDrawer.deactivate?.();
+    deleteTool.deactivate?.();
+});
     const areaDrawer = new AreaDrawer(viewer);
     loadAreas(viewer); // Load saved areas on startup
     const structureDrawer = new StructureDrawer(viewer);
     loadStructures(viewer);
+    const deleteTool = new DeleteTool(viewer);
 
 
     // Models
