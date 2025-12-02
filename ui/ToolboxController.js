@@ -1,19 +1,54 @@
 export class ToolboxController {
     constructor() {
         this.callbacks = {};
+        this.activeButton = null;
         this.setupEvents();
     }
 
-    // Allow main.js to register handlers
     on(action, callback) {
         this.callbacks[action] = callback;
     }
 
+    setActiveButton(button, action) {
+        // If toggling off the same button
+        if (this.activeButton === button) {
+            this.activeButton.classList.remove("active");
+            this.activeButton = null;
+
+            if (this.callbacks["deactivate"]) {
+                this.callbacks["deactivate"](action);
+            }
+            return false;
+        }
+
+        // If switching from another button
+        if (this.activeButton) {
+            const previousAction = this.activeButton.dataset.action;
+            this.activeButton.classList.remove("active");
+
+            if (this.callbacks["deactivate"]) {
+                this.callbacks["deactivate"](previousAction);
+            }
+        }
+
+        // Activate new button
+        button.classList.add("active");
+        this.activeButton = button;
+        this.activeButton.dataset.action = action;
+        return true;
+    }
+
     setupEvents() {
         const link = (id, action) => {
-            document.getElementById(id).onclick = (e) => {
-                e.stopPropagation();
+            const btn = document.getElementById(id);
+
+            btn.onclick = (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+
+                const activated = this.setActiveButton(btn, action);
+                if (!activated) return;
+
                 if (this.callbacks[action]) {
                     this.callbacks[action]();
                 }
@@ -28,6 +63,6 @@ export class ToolboxController {
         link("btnPlaceRoad", "placeRoad");
         link("btnPlaceTree", "placeTree");
 
-        link("btnDelete", "deleteEntity");
+        link("btnDelete", "delete");
     }
 }

@@ -34,6 +34,10 @@ export class StructureDrawer {
         this.currentType = type;
     }
 
+    deactivate() {
+        this.active = false
+    }
+
     async placeStructure(lon, lat) {
         const newId = crypto.randomUUID();
 

@@ -6,15 +6,26 @@ const FILE = "./data/areas.json";
 
 const read = () => {
     try {
-        return JSON.parse(fs.readFileSync(FILE, "utf8"));
+        const data = fs.readFileSync(FILE, "utf8");
+
+        // If file is empty or only whitespace, return empty array
+        if (!data.trim()) return [];
+
+        return JSON.parse(data);
     } catch (err) {
-        console.error("Error reading areas.json:", err);
+        console.error("Error reading", FILE, ":", err);
         return [];
     }
 };
 
-const write = (data) =>
-    fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
+
+const write = (data) => {
+    try {
+        fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error("Error writing", FILE, ":", err);
+    }
+};
 
 // GET all areas
 router.get("/", (req, res) => {
