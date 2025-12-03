@@ -39,12 +39,24 @@ export class ToolboxController {
     }
 
     setupEvents() {
+        // Certain actions are immediate commands and should not toggle or
+        // deactivate the currently active tool. For example, "finishArea"
+        // finalizes a drawing and must run while the draw tool is still active.
+        const nonToggleActions = new Set(["finishArea", "cancelArea"]);
+
         const link = (id, action) => {
             const btn = document.getElementById(id);
 
             btn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                // If this is a non-toggle action, just invoke the callback
+                // without changing the active button or calling deactivate.
+                if (nonToggleActions.has(action)) {
+                    if (this.callbacks[action]) this.callbacks[action]();
+                    return;
+                }
 
                 const activated = this.setActiveButton(btn, action);
                 if (!activated) return;

@@ -54,5 +54,47 @@
     "style": {
       "color": "#AA8833"
     }
+  },
+  {
+    "id": "f40d0bf0-31a2-4a13-9877-e0939745222d",
+    "type": "building",
+    "position": [
+      5.779408018211639,
+      53.19611052734765
+    ],
+    "width": 6,
+    "depth": 6,
+    "height": 10,
+    "style": {
+      "color": "#AA8833"
+    }
+  },
+  {
+    "id": "d33ead40-1bbc-4c21-8178-78b4dbb5dc00",
+    "type": "building",
+    "position": [
+      5.779437183471452,
+      53.19559989552679
+    ],
+    "width": 6,
+    "depth": 6,
+    "height": 10,
+    "style": {
+      "color": "#AA8833"
+    }
+  },
+  {
+    "id": "63b40540-ece6-4311-b0ae-b943b5621106",
+    "type": "building",
+    "position": [
+      5.779683586451617,
+      53.19563156693549
+    ],
+    "width": 6,
+    "depth": 6,
+    "height": 10,
+    "style": {
+      "color": "#AA8833"
+    }
   }
 ]

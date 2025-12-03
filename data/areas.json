@@ -1,0 +1,49 @@
+[ {
+  "id" : "spoordok",
+  "name" : "spoordok",
+  "polygon" : [ [ 5.787759928698073, 53.197831145908 ], [ 5.789123554275904, 53.19763995957844 ], [ 5.788934967759822, 53.19602353198474 ], [ 5.776937964005922, 53.194528716741345 ], [ 5.774587885853288, 53.196901277127026 ], [ 5.774703939093954, 53.1976225789762 ], [ 5.786410809746187, 53.19704032421097 ] ],
+  "allowedTypes" : [ "building", "road", "green" ],
+  "style" : {
+    "fillColor" : "#E8E8E8",
+    "fillOpacity" : 1,
+    "outlineColor" : "#0044AA",
+    "outlineWidth" : 2,
+    "heightOffset" : 0
+  }
+}, {
+  "id" : "hfghg",
+  "name" : "hfghg",
+  "polygon" : [ [ 5.7769041206678375, 53.19635825016836 ], [ 5.77835101516748, 53.19631688898017 ], [ 5.777633388185661, 53.19566789339404 ], [ 5.776426607395924, 53.195731439359236 ] ],
+  "allowedTypes" : [ "building", "road", "green" ],
+  "style" : {
+    "fillColor" : "#00AEEF",
+    "fillOpacity" : 0.25,
+    "outlineColor" : "#003F7F",
+    "outlineWidth" : 2,
+    "heightOffset" : 0.1
+  }
+}, {
+  "id" : "jjj",
+  "name" : "jjj",
+  "polygon" : [ [ 5.777596599414574, 53.19683118092873 ], [ 5.778431940993403, 53.19711789703788 ], [ 5.778205140116463, 53.196563763724534 ], [ 5.777568109934577, 53.19642370838418 ] ],
+  "allowedTypes" : [ "building", "road", "green" ],
+  "style" : {
+    "fillColor" : "#00AEEF",
+    "fillOpacity" : 0.25,
+    "outlineColor" : "#003F7F",
+    "outlineWidth" : 2,
+    "heightOffset" : 0.1
+  }
+}, {
+  "id" : "jjjj",
+  "name" : "jjjj",
+  "polygon" : [ [ 5.776334908315129, 53.19621194096325 ], [ 5.775994641971734, 53.196164062413324 ], [ 5.776326196672167, 53.19568091210529 ], [ 5.776624764390838, 53.19589116885608 ] ],
+  "allowedTypes" : [ "building", "road", "green" ],
+  "style" : {
+    "fillColor" : "#00AEEF",
+    "fillOpacity" : 0.25,
+    "outlineColor" : "#003F7F",
+    "outlineWidth" : 2,
+    "heightOffset" : 0.1
+  }
+} ]

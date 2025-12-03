@@ -61,13 +61,14 @@ export class AreaDrawer {
 
                 const lat = Cesium.Math.toDegrees(carto.latitude);
                 const lon = Cesium.Math.toDegrees(carto.longitude);
-
                 this.positions.push({ lat, lon });
+                console.log("AreaDrawer: added point", { lat, lon }, "total:", this.positions.length);
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
         }
     }
 
     async finish(name) {
+        console.log("AreaDrawer.finish called", { isDrawing: this.isDrawing, positionsLength: this.positions.length, positions: this.positions });
         if (!this.isDrawing || this.positions.length < 3) {
             alert("You need at least 3 points for an area.");
             return;

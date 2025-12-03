@@ -18,10 +18,8 @@ import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 
 window.onload = () => {
 
-    document.addEventListener("click", (e) => {
-    e.preventDefault();
-}, {capture: true});
-
+    // NOTE: removed global click preventDefault which interfered with
+    // normal UI events (it could cancel drawing or stop button handlers).
 
     const viewer = createViewer();
 
@@ -45,29 +43,37 @@ window.onload = () => {
     // Example boxes
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
 
+    // Create tool instances
+    const areaDrawer = new AreaDrawer(viewer);
+    const structureDrawer = new StructureDrawer(viewer);
+    const deleteTool = new DeleteTool(viewer);
+
+    loadAreas(viewer); // Load saved areas on startup
+    loadStructures(viewer);
+
     const toolbox = new ToolboxController();
-   
+
     // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());
-toolbox.on("finishArea", () => areaDrawer.finish(prompt("Name:")));
-toolbox.on("cancelArea", () => areaDrawer.cancel());
+    toolbox.on("finishArea", () => areaDrawer.finish(prompt("Name:")));
+    toolbox.on("cancelArea", () => areaDrawer.cancel());
 
-toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
-toolbox.on("placeRoad", () => structureDrawer.activate("road"));
-toolbox.on("placeTree", () => structureDrawer.activate("tree"));
+    toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
+    toolbox.on("placeRoad", () => structureDrawer.activate("road"));
+    toolbox.on("placeTree", () => structureDrawer.activate("tree"));
 
-toolbox.on("delete", () => deleteTool.activate());
-toolbox.on("deactivate", (action) => {
-    // Handle deactivation
-    areaDrawer.cancel();
-    structureDrawer.deactivate?.();
-    deleteTool.deactivate?.();
-});
-    const areaDrawer = new AreaDrawer(viewer);
-    loadAreas(viewer); // Load saved areas on startup
-    const structureDrawer = new StructureDrawer(viewer);
-    loadStructures(viewer);
-    const deleteTool = new DeleteTool(viewer);
+    // Delete action name used by ToolboxController is "delete"
+    toolbox.on("delete", () => deleteTool.activate());
+
+    // Deactivate callback is called by ToolboxController when buttons toggle off
+    toolbox.on("deactivate", (action) => {
+        // If an area draw was active, cancel it
+        if (action === "drawArea") areaDrawer.cancel();
+        // If a structure tool was active, attempt to deactivate it
+        structureDrawer.deactivate?.();
+        // Deactivate delete tool if it was active
+        deleteTool.deactivate?.();
+    });
 
 
     // Models
