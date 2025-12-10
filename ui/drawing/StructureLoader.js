@@ -18,7 +18,8 @@ export async function loadStructures(viewer) {
                     s.height
                 ),
                 material: Cesium.Color.fromCssColorString(s.style.color)
-            }
+            },
+            rotation: s.rotation
         });
     });
 }

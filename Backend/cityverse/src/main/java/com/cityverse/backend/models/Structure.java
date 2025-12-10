@@ -7,6 +7,7 @@ public class Structure {
     private String id;
     private String type;
     private List<Double> position;
+    private double rotation;
     private double width;
     private double depth;
     private double height;
@@ -23,6 +24,9 @@ public class Structure {
 
     public List<Double> getPosition() { return position; }
     public void setPosition(List<Double> position) { this.position = position; }
+
+    public double getRotation() { return rotation; }
+    public void setRotation(double rotation) { this.rotation = rotation; }
 
     public double getWidth() { return width; }
     public void setWidth(double width) { this.width = width; }

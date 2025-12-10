@@ -45,6 +45,7 @@ export class StructureDrawer {
             id: newId,
             type: this.currentType,
             position: [lon, lat],
+            rotation: 0,
             width: 6,
             depth: 6,
             height: 10,

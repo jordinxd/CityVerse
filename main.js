@@ -14,6 +14,11 @@ import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
 import { loadStructures } from "./ui/drawing/StructureLoader.js";
 import { DeleteTool } from "./ui/drawing/DeleteTool.js";
+import { EditorSelection } from "./ui/editor/EditorSelection.js";
+import { MoveTool } from "./ui/editor/MoveTool.js";
+import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
+
+
 
 
 window.onload = () => {
@@ -47,6 +52,13 @@ window.onload = () => {
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
+    const selection = new EditorSelection(viewer);
+    const moveTool = new MoveTool(viewer, selection);
+
+    const toolManager = new EditorToolManager(viewer, selection, {
+    move: moveTool
+});
+
 
     loadAreas(viewer); // Load saved areas on startup
     loadStructures(viewer);
@@ -62,18 +74,14 @@ window.onload = () => {
     toolbox.on("placeRoad", () => structureDrawer.activate("road"));
     toolbox.on("placeTree", () => structureDrawer.activate("tree"));
 
-    // Delete action name used by ToolboxController is "delete"
+    toolbox.on("move", () => toolManager.activateTool("move"));
+    toolbox.on("rotate", () => toolManager.activateTool("rotate"));
+    toolbox.on("scale", () => toolManager.activateTool("scale"));
+    
+    toolbox.on("deactivate", () => toolManager.deactivateAll());
+
     toolbox.on("delete", () => deleteTool.activate());
 
-    // Deactivate callback is called by ToolboxController when buttons toggle off
-    toolbox.on("deactivate", (action) => {
-        // If an area draw was active, cancel it
-        if (action === "drawArea") areaDrawer.cancel();
-        // If a structure tool was active, attempt to deactivate it
-        structureDrawer.deactivate?.();
-        // Deactivate delete tool if it was active
-        deleteTool.deactivate?.();
-    });
 
 
     // Models
