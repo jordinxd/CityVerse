@@ -1,0 +1,178 @@
+#toolbox {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(30, 30, 30, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    z-index: 999;
+}
+
+#toolbox button {
+    width: 150px;
+    margin: 4px 0;
+    padding: 6px;
+    background: #303030;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#toolbox button:hover {
+    background: #505050;
+}
+#toolbox button.active {
+    background: #1e90ff;
+    color: white;
+}
+
+#toolbox button.active {
+    background: #707070;
+    border-color: #aaa;
+}
+
+
+/* --- RECHTER SIDEBAR --- */
+#sidebar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    bottom: 20px; /* Vult de hoogte tot bijna onderaan */
+    width: 300px;
+    background: rgba(30, 30, 30, 0.8); /* Matcht met #toolbox */
+    border-radius: 10px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column; /* Zorgt dat footer onderaan blijft */
+    color: white;
+    font-family: sans-serif;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    overflow: hidden; /* Zorgt dat content binnen de ronde hoeken blijft */
+}
+
+/* Tabs bovenin */
+.tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.2); /* Iets donkerder voor contrast */
+    border-bottom: 1px solid #555;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: color 0.2s, background 0.2s;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.tab-btn.active {
+    color: white;
+    border-bottom: 3px solid #1e90ff; /* Blauw accent (zoals de active button) */
+}
+
+/* Middenstuk (Scrollbaar) */
+.sidebar-content {
+    padding: 15px;
+    flex: 1; /* Neemt alle beschikbare ruimte in */
+    overflow-y: auto; /* Scrollbalk alleen hier als lijst lang is */
+}
+
+.sidebar-content h2 {
+    margin-top: 0;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #eee;
+}
+
+/* Agent Kaartjes */
+.agent-card {
+    background: #303030; /* Zelfde als toolbox buttons */
+    border: 1px solid #555;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.agent-header {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.agent-action {
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #ccc;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.agent-action:hover {
+    background: #404040;
+}
+
+/* Icon Buttons (klein & transparant) */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+}
+
+.icon-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.icon-svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Footer (Vaste knop onderin) */
+.sidebar-footer {
+    padding: 15px;
+    border-top: 1px solid #555;
+    background: rgba(30, 30, 30, 0.5);
+}
+
+/* Knop stijl consistent met toolbox buttons */
+.action-btn-main {
+    width: 100%;
+    padding: 10px;
+    background: #303030;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.action-btn-main:hover {
+    background: #505050;
+}

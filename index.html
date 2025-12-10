@@ -1,46 +1,12 @@
 <html>
-    <style>
-#toolbox {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: rgba(30, 30, 30, 0.8);
-    padding: 15px;
-    border-radius: 10px;
-    z-index: 999;
-}
-
-#toolbox button {
-    width: 150px;
-    margin: 4px 0;
-    padding: 6px;
-    background: #303030;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-#toolbox button:hover {
-    background: #505050;
-}
-#toolbox button.active {
-    background: #1e90ff;
-    color: white;
-}
-
-#toolbox button.active {
-    background: #707070;
-    border-color: #aaa;
-}
-
-</style>
 
     <head>
         <script src="Cesium-1.135/Build/Cesium/Cesium.js"></script>
         <script type="module" src="main.js"></script>
         <link href="Cesium-1.135/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
     </head>
+    
     <body style="margin: 0px; padding: 0px;">
         <div id="toolbox">
         <button type="button" id="btnDrawArea">Draw Area</button>
@@ -52,8 +18,52 @@
         <button type="button" id="btnPlaceTree">Place Tree</button>
         <hr>
         <button type="button" id="btnDelete">Delete</button>
-
     </div>
+    <div id="sidebar">
+    <div class="tabs">
+        <button class="tab-btn">Gegevens</button>
+        <button class="tab-btn active">Agents</button>
+    </div>
+
+    <div class="sidebar-content">
+        <h2>Agents</h2>
+
+        <div class="agent-card">
+            <div class="agent-header">
+                <span>Agent 1</span>
+                <button class="icon-btn" title="Verwijderen">
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
+            </div>
+            <div class="agent-action">
+                <span>Analyseer POV</span>
+                <button class="icon-btn">
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="agent-card">
+            <div class="agent-header">
+                <span>Agent 2</span>
+                <button class="icon-btn" title="Verwijderen">
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
+            </div>
+            <div class="agent-action">
+                <span>Bekijk analyse</span>
+                <button class="icon-btn">
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <button id="btnAgentPlaatsen" class="action-btn-main">Plaats Agent</button>
+    </div>
+</div>
+
         <div id="cesiumContainer" style="margin: 0px; padding: 0px;"></div>
     </body>
 </html>
