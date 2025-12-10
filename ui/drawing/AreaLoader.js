@@ -16,6 +16,7 @@ export async function loadAreas(viewer) {
         const heightOffset = style.heightOffset ?? 0;
 
         viewer.entities.add({
+            id: area.id,
             name: area.name,
             polygon: {
                 hierarchy: area.polygon.map(p =>

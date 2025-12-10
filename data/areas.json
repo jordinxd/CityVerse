@@ -46,4 +46,16 @@
     "outlineWidth" : 2,
     "heightOffset" : 0.1
   }
+}, {
+  "id" : "dfghjkl;'",
+  "name" : "dfghjkl;'",
+  "polygon" : [ [ 5.7771213138836135, 53.19543023925564 ], [ 5.778307401390479, 53.195380096102895 ], [ 5.778054838901233, 53.195010739143015 ], [ 5.777241796749347, 53.19501147462081 ] ],
+  "allowedTypes" : [ "building", "road", "green" ],
+  "style" : {
+    "fillColor" : "#00AEEF",
+    "fillOpacity" : 0.25,
+    "outlineColor" : "#003F7F",
+    "outlineWidth" : 2,
+    "heightOffset" : 0.1
+  }
 } ]

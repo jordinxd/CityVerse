@@ -36,6 +36,8 @@ public class AreaController {
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
+        System.out.println("AreaController: DELETE /areas/" + id);
         service.delete(id);
+        System.out.println("AreaController: Deleted area with id: " + id);
     }
 }

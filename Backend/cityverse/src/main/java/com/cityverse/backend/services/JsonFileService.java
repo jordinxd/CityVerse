@@ -18,8 +18,15 @@ public class JsonFileService<T> {
     private final TypeReference<List<T>> typeReference;
 
     public JsonFileService(String path, TypeReference<List<T>> typeReference) {
-        this.file = new File(path);
+        // Resolve to absolute path using user home directory for consistency across restarts
+        File baseDir = new File(System.getProperty("user.home"), ".cityverse-data");
+        if (!baseDir.exists()) {
+            baseDir.mkdirs();
+        }
+        String fileName = new File(path).getName(); // Extract "areas.json" or "structures.json"
+        this.file = new File(baseDir, fileName);
         this.typeReference = typeReference;
+        
         // If the external file doesn't exist, attempt to copy the default
         // resource packaged under `src/main/resources` to a writable file
         // so the application can read and update it at runtime.
@@ -28,14 +35,16 @@ public class JsonFileService<T> {
                     .getContextClassLoader()
                     .getResourceAsStream(path)) {
                 if (is != null) {
-                    File parent = this.file.getParentFile();
-                    if (parent != null && !parent.exists()) parent.mkdirs();
                     Files.copy(is, this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println("JsonFileService: Initialized " + this.file.getAbsolutePath());
                 }
             } catch (IOException e) {
                 // If copying fails, we'll fall back to returning empty lists on read
+                System.err.println("JsonFileService: Failed to initialize " + this.file.getAbsolutePath());
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("JsonFileService: Using existing " + this.file.getAbsolutePath());
         }
     }
 
