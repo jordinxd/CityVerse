@@ -1,5 +1,6 @@
 import { AreaService } from "../../services/AreaService.js";
 import { StructureService } from "../../services/StructureService.js";
+import { CameraService } from "../../services/CameraService.js";
 
 export class DeleteTool {
     constructor(viewer) {
@@ -48,7 +49,12 @@ export class DeleteTool {
         } catch (e) {
             // ignore if not found or not a structure
         }
-
+        try {
+            await CameraService.delete(id);
+        } catch (e) {
+            // ignore if not found or not a camera  
+        }
+        
         this.viewer.entities.removeById(id);
 
         console.log("Deleted:", id);
