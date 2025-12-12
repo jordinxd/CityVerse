@@ -17,6 +17,11 @@ import { CameraService } from "./services/CameraService.js";
 import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { loadStructures } from "./ui/drawing/StructureLoader.js";
 import { loadCameras } from "./ui/drawing/CameraLoader.js";
+import { EditorSelection } from "./ui/editor/EditorSelection.js";
+import { MoveTool } from "./ui/editor/MoveTool.js";
+import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
+
+
 
 window.onload = async () => {
     const viewer = createViewer();
@@ -46,11 +51,22 @@ window.onload = async () => {
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
+    const selection = new EditorSelection(viewer);
+    const moveTool = new MoveTool(viewer, selection);
 
-    // Load saved data from backend
-    await loadAreas(viewer);
-    await loadStructures(viewer);
-    await loadCameras(viewer, cameraDrawer);
+    const toolManager = new EditorToolManager(viewer, selection, {
+    move: moveTool
+});
+
+    // Load saved areas and structures from backend
+    try {
+     loadAreas(viewer);
+     loadStructures(viewer);
+     loadCameras(viewer, cameraDrawer);
+        console.log("Entities loaded from backend");
+    } catch (err) {
+        console.error("Failed to load entities:", err);
+    }
 
     const toolbox = new ToolboxController();
 
@@ -67,14 +83,25 @@ window.onload = async () => {
     toolbox.on("placeRoad", () => structureDrawer.activate("road"));
     toolbox.on("placeTree", () => structureDrawer.activate("tree"));
 
-    // Delete action
-    toolbox.on("delete", () => deleteTool.activate());
-
-    // Deactivate callback
+    toolbox.on("move", () => toolManager.activateTool("move"));
+    toolbox.on("rotate", () => toolManager.activateTool("rotate"));
+    toolbox.on("scale", () => toolManager.activateTool("scale"));
+    
+    // Deactivate all tools when switching away from current tool
     toolbox.on("deactivate", (action) => {
-        if (action === "drawArea") areaDrawer.cancel();
-        structureDrawer.deactivate?.();
-        deleteTool.deactivate?.();
+        areaDrawer.cancel();
+        structureDrawer.deactivate();
+        deleteTool.deactivate();
+        toolManager.deactivateAll();
+    });
+
+    toolbox.on("delete", () => {
+        // Deactivate other tools first
+        areaDrawer.cancel();
+        structureDrawer.deactivate();
+        toolManager.deactivateAll();
+        // Then activate delete
+        deleteTool.activate();
     });
 
     // Models
