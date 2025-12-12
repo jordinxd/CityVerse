@@ -66,6 +66,10 @@ export class ToolboxController {
                 }
             };
         };
+        // Camera knoppen
+        link("btnPlaceCamera", "placeCamera");
+        link("btnSaveCamera", "saveCamera");
+        link("btnDeleteCamera", "deleteCamera");
 
         link("btnDrawArea", "drawArea");
         link("btnFinishArea", "finishArea");

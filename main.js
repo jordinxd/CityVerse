@@ -1,12 +1,14 @@
 import { createViewer } from "./core/CesiumSetup.js";
-import { fetchBackendMessage } from "./core/BackendCheck.js";
-import { latlonFromXY } from "./core/CoordinateUtils.js";
+import { fetchBackendMessage } from "./Core/BackendCheck.js";
+import { latlonFromXY } from "./Core/CoordinateUtils.js";
+import { CameraSystem } from "./Core/CameraSystem.js";
+
 import {
     createBox,
     moveEntity,
     createPolygonFromXYs,
     createModel
-} from "./core/EntityFactory.js";
+} from "./Core/EntityFactory.js";
 
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
@@ -23,6 +25,11 @@ window.onload = () => {
 
     const viewer = createViewer();
 
+    // Camera systeem initialiseren
+    const cameraSystem = new CameraSystem(viewer);
+    window.cameraSystem = cameraSystem; // Voor debug doeleinden
+
+
     // Example entities
     const testLabelPos = latlonFromXY(220, 70);
 
@@ -38,7 +45,7 @@ window.onload = () => {
         }
     });
 
-    viewer.flyTo(testLabel);
+    viewer.flyTo(cameraSystem);
 
     // Example boxes
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
@@ -52,6 +59,18 @@ window.onload = () => {
     loadStructures(viewer);
 
     const toolbox = new ToolboxController();
+    
+    // Camera callbacks
+    toolbox.on("placeCamera", () => cameraSystem.enablePlacement());
+    toolbox.on("saveCamera", () => cameraSystem.saveCurrentCamera());
+    toolbox.on("loadCamera", () => cameraSystem.loadCamera(0));
+    toolbox.on("deleteCamera", () => {
+        const index = prompt("Enter camera index to delete (starting at 0):");
+        console.log("Delete camera requested at index:", index);
+            if (index !== null) {
+                cameraSystem.deleteCamera(parseInt(index));
+            }
+});
 
     // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());

@@ -44,39 +44,6 @@
       "outlineWidth": 2,
       "heightOffset": 0
     }
-  },
-  {
-    "id": "hfghg",
-    "name": "hfghg",
-    "polygon": [
-      [
-        5.7769041206678375,
-        53.19635825016836
-      ],
-      [
-        5.77835101516748,
-        53.19631688898017
-      ],
-      [
-        5.777633388185661,
-        53.19566789339404
-      ],
-      [
-        5.776426607395924,
-        53.195731439359236
-      ]
-    ],
-    "allowedTypes": [
-      "building",
-      "road",
-      "green"
-    ],
-    "style": {
-      "fillColor": "#00AEEF",
-      "fillOpacity": 0.25,
-      "outlineColor": "#003F7F",
-      "outlineWidth": 2,
-      "heightOffset": 0.1
-    }
   }
+
 ]
