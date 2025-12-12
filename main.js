@@ -47,7 +47,6 @@ window.onload = () => {
 
     // Example boxes
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
-
     // Create tool instances
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
@@ -59,9 +58,14 @@ window.onload = () => {
     move: moveTool
 });
 
-
-    loadAreas(viewer); // Load saved areas on startup
-    loadStructures(viewer);
+    // Load saved areas and structures from backend
+    try {
+     loadAreas(viewer);
+     loadStructures(viewer);
+        console.log("Entities loaded from backend");
+    } catch (err) {
+        console.error("Failed to load entities:", err);
+    }
 
     const toolbox = new ToolboxController();
 
@@ -78,9 +82,22 @@ window.onload = () => {
     toolbox.on("rotate", () => toolManager.activateTool("rotate"));
     toolbox.on("scale", () => toolManager.activateTool("scale"));
     
-    toolbox.on("deactivate", () => toolManager.deactivateAll());
+    // Deactivate all tools when switching away from current tool
+    toolbox.on("deactivate", (action) => {
+        areaDrawer.cancel();
+        structureDrawer.deactivate();
+        deleteTool.deactivate();
+        toolManager.deactivateAll();
+    });
 
-    toolbox.on("delete", () => deleteTool.activate());
+    toolbox.on("delete", () => {
+        // Deactivate other tools first
+        areaDrawer.cancel();
+        structureDrawer.deactivate();
+        toolManager.deactivateAll();
+        // Then activate delete
+        deleteTool.activate();
+    });
 
 
 

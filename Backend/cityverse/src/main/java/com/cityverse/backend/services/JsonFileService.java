@@ -18,14 +18,28 @@ public class JsonFileService<T> {
     private final TypeReference<List<T>> typeReference;
 
     public JsonFileService(String path, TypeReference<List<T>> typeReference) {
-        // Resolve to absolute path using user home directory for consistency across restarts
-        File baseDir = new File(System.getProperty("user.home"), ".cityverse-data");
+        // Resolve to absolute path: use project root data directory or user home as fallback
+        // First try to find the project root by looking for a data directory
+        File projectRoot = findProjectRoot();
+        File baseDir = new File(projectRoot, "data");
+        
+        System.out.println("JsonFileService: projectRoot=" + projectRoot.getAbsolutePath());
+        System.out.println("JsonFileService: checking baseDir=" + baseDir.getAbsolutePath() + " exists=" + baseDir.exists());
+        
+        // Fallback to user home if project data dir doesn't exist
+        if (!baseDir.exists()) {
+            System.out.println("JsonFileService: project data dir not found, falling back to home directory");
+            baseDir = new File(System.getProperty("user.home"), ".cityverse-data");
+        }
+        
         if (!baseDir.exists()) {
             baseDir.mkdirs();
         }
         String fileName = new File(path).getName(); // Extract "areas.json" or "structures.json"
         this.file = new File(baseDir, fileName);
         this.typeReference = typeReference;
+        
+        System.out.println("JsonFileService: Using file=" + this.file.getAbsolutePath());
         
         // If the external file doesn't exist, attempt to copy the default
         // resource packaged under `src/main/resources` to a writable file
@@ -64,5 +78,33 @@ public class JsonFileService<T> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Find the CityVerse project root by searching for the Backend/cityverse subdirectory.
+     * This ensures we find the correct project root, not a local data dir.
+     */
+    private static File findProjectRoot() {
+        File current = new File(".").getAbsoluteFile();
+        int depth = 0;
+        while (current != null && depth < 10) {
+            // Look for the CityVerse project root: it should contain both Backend/ and data/
+            File backend = new File(current, "Backend");
+            File data = new File(current, "data");
+            
+            // The real root has Backend/cityverse subdirectory
+            File backendCityverse = new File(current, "Backend/cityverse");
+            if (backendCityverse.exists() && backendCityverse.isDirectory() && data.exists()) {
+                System.out.println("JsonFileService: Found project root at: " + current.getAbsolutePath());
+                return current;
+            }
+            
+            current = current.getParentFile();
+            depth++;
+        }
+        // Fallback: return current directory but mark it as potentially wrong
+        File fallback = new File(".").getAbsoluteFile();
+        System.out.println("JsonFileService: WARNING - Could not find project root, using fallback: " + fallback.getAbsolutePath());
+        return fallback;
     }
 }

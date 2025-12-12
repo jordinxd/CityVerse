@@ -42,4 +42,11 @@ export class EditorToolManager {
             this.tools[this.activeTool].activate();
         }
     }
+
+    deactivateAll() {
+        if (this.activeTool && this.tools[this.activeTool]) {
+            this.tools[this.activeTool].deactivate();
+            this.activeTool = null;
+        }
+    }
 }
