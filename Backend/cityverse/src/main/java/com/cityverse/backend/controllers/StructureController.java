@@ -36,19 +36,12 @@ public class StructureController {
     }
 
     @PutMapping("/{id}")
-    public Structure updateStructure(@PathVariable String id, @RequestBody Structure updated) {
-        List<Structure> list = service.getAll();
-
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getId().equals(id)) {
-                list.set(i, updated);
-                service.writeAll(list);
-                return updated;
-            }
-        }
-
-        throw new RuntimeException("Structure not found: " + id);
-    }
+public Structure updateStructure(
+        @PathVariable String id,
+        @RequestBody Structure partial
+) {
+    return service.updatePartial(id, partial);
+}
 
 
     @DeleteMapping("/{id}")
