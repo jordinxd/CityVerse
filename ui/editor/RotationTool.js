@@ -4,150 +4,252 @@ export class RotationTool {
     constructor(viewer, selection) {
         this.viewer = viewer;
         this.selection = selection;
+
         this.active = false;
         this.dragging = false;
-        this.lastX = null;
+
+        this.startAngle = null;
+        this.startRotation = null;
+
+        this.ringEntity = null;
+        this.ringRadius = 15;
 
 
-        this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        this.handler = new Cesium.ScreenSpaceEventHandler(
+            viewer.scene.canvas
+        );
 
+        // ─────────────────────────────────────────────
+        // DRAG START
+        // ─────────────────────────────────────────────
         this.handler.setInputAction(
-    (movement) => {
-        if (!this.active) return;
+            (movement) => {
+                if (!this.active) return;
 
-        this.dragging = true;
-        this.lastX = movement.position.x;
+                const entity = this.selection.getSelected();
+                if (!entity) return;
 
-        console.log("[RotationTool] drag start");
-    },
-    Cesium.ScreenSpaceEventType.LEFT_DOWN
-);
+                const angle = this.getAngleToMouse(movement);
+                if (angle === null) return;
 
-this.handler.setInputAction(
-    () => {
-        if (!this.active) return;
+                this.dragging = true;
+                this.startAngle = angle;
+                this.startRotation =
+                    entity.properties.rotation?.getValue() ?? 0;
+
+                console.log("[RotationTool] drag start");
+            },
+            Cesium.ScreenSpaceEventType.LEFT_DOWN
+        );
+
+        // ─────────────────────────────────────────────
+        // DRAG MOVE
+        // ─────────────────────────────────────────────
+        this.handler.setInputAction(
+            (movement) => {
+                if (!this.active || !this.dragging) return;
+
+                const entity = this.selection.getSelected();
+                if (!entity) return;
+
+                const currentAngle = this.getAngleToMouse(movement);
+                if (currentAngle === null) return;
+
+                const deltaAngle =
+                    currentAngle - this.startAngle;
+
+                const deltaDegrees =
+                    Cesium.Math.toDegrees(deltaAngle);
+
+                const newRotation =
+                    this.startRotation + deltaDegrees;
+
+                this.applyRotation(entity, newRotation);
+            },
+            Cesium.ScreenSpaceEventType.MOUSE_MOVE
+        );
+
+        // ─────────────────────────────────────────────
+        // DRAG END
+        // ─────────────────────────────────────────────
+        this.handler.setInputAction(
+    async () => {
+        if (!this.active || !this.dragging) return;
 
         this.dragging = false;
-        this.lastX = null;
 
-        console.log("[RotationTool] drag end");
+        const entity = this.selection.getSelected();
+        if (entity) {
+            await this.persistRotation(entity);
+        }
+
+        console.log("[RotationTool] drag end → rotation persisted");
     },
     Cesium.ScreenSpaceEventType.LEFT_UP
 );
 
-this.handler.setInputAction(
-    (movement) => {
-        if (!this.active || !this.dragging) return;
+    }
+
+    // ─────────────────────────────────────────────
+    // TOOL LIFECYCLE
+    // ─────────────────────────────────────────────
+    activate() {
+        this.active = true;
 
         const entity = this.selection.getSelected();
-        if (!entity) return;
-
-        const currentX = movement.endPosition.x;
-        const deltaX = currentX - this.lastX;
-        this.lastX = currentX;
-
-        if (Math.abs(deltaX) < 1) return;
-
-        const currentRotation =
-            entity.properties.rotation.getValue() ?? 0;
-
-        const newRotation = currentRotation + deltaX * 0.3;
-
-        console.log("[RotationTool] rotating to", newRotation);
-
-        this.applyRotation(entity, newRotation);
-    },
-    Cesium.ScreenSpaceEventType.MOUSE_MOVE
-);
-
-    }
-
-    
-
-    activate() {
-    this.active = true;
-
-    const c = this.viewer.scene.screenSpaceCameraController;
-    c.enableRotate = false;
-    c.enableTranslate = false;
-    c.enableZoom = false;
-    c.enableTilt = false;
-    c.enableLook = false;
-
-    console.log("[RotationTool] activated (camera disabled)");
+if (entity) {
+    this.showRotationRing(entity);
 }
 
 
+        const c =
+            this.viewer.scene.screenSpaceCameraController;
+        c.enableRotate = false;
+        c.enableTranslate = false;
+        c.enableZoom = false;
+        c.enableTilt = false;
+        c.enableLook = false;
+
+        console.log("[RotationTool] activated");
+    }
 
     deactivate() {
-    this.active = false;
-    this.dragging = false;
+        this.active = false;
+        this.dragging = false;
 
-    const c = this.viewer.scene.screenSpaceCameraController;
-    c.enableRotate = true;
-    c.enableTranslate = true;
-    c.enableZoom = true;
-    c.enableTilt = true;
-    c.enableLook = true;
-
-    console.log("[RotationTool] deactivated (camera enabled)");
-}
+        this.hideRotationRing();
 
 
+        const c =
+            this.viewer.scene.screenSpaceCameraController;
+        c.enableRotate = true;
+        c.enableTranslate = true;
+        c.enableZoom = true;
+        c.enableTilt = true;
+        c.enableLook = true;
 
-
-    onMouseMove(movement) {
-    console.log("[RotationTool] mouse move");
-
-    if (!this.active) {
-        console.log("[RotationTool] inactive");
-        return;
+        console.log("[RotationTool] deactivated");
     }
+
+    // ─────────────────────────────────────────────
+    // CORE MATH
+    // ─────────────────────────────────────────────
+    getAngleToMouse(movement) {
+    const screenPos =
+        movement.endPosition ?? movement.position;
+
+    if (!screenPos) return null;
+
+    const ray =
+        this.viewer.camera.getPickRay(screenPos);
+    if (!ray) return null;
 
     const entity = this.selection.getSelected();
-    if (!entity) {
-        console.log("[RotationTool] no selection");
-        return;
-    }
+    if (!entity) return null;
 
-    const deltaX = movement.endPosition.x - movement.startPosition.x;
-    console.log("[RotationTool] deltaX:", deltaX);
+    const center =
+        entity.position.getValue(
+            this.viewer.clock.currentTime
+        );
 
-    if (Math.abs(deltaX) < 2) return;
+    // Define plane: horizontal through center
+    const plane = new Cesium.Plane(
+        Cesium.Cartesian3.UNIT_Y,
+        -center.y
+    );
 
-    const current = entity.properties.rotation?.getValue() ?? 0;
-    const nextRotation = current + deltaX * 0.2;
+    const hit =
+        Cesium.IntersectionTests.rayPlane(
+            ray,
+            plane
+        );
 
-    console.log("[RotationTool] applying rotation:", nextRotation);
+    if (!hit) return null;
 
-    this.applyRotation(entity, nextRotation);
+    // Vector from center to hit point
+    const dx = hit.x - center.x;
+    const dz = hit.z - center.z;
+
+    // Ignore distance → only angle matters
+    return Math.atan2(dz, dx);
 }
 
-async applyRotation(entity, rotation) {
-    const id = entity.id;
-console.log("[RotationTool] setting orientation");
 
-    // Update Cesium immediately
-    entity.properties.rotation = rotation;
+    // ─────────────────────────────────────────────
+    // APPLY ROTATION (VISUAL ONLY)
+    // ─────────────────────────────────────────────
+    applyRotation(entity, rotation) {
+    const normalized =
+        ((rotation % 360) + 360) % 360;
+
+    // Visual state only
+    entity.properties.rotation = normalized;
 
     entity.orientation =
         Cesium.Transforms.headingPitchRollQuaternion(
-            entity.position.getValue(Cesium.JulianDate.now()),
+            entity.position.getValue(
+                Cesium.JulianDate.now()
+            ),
             new Cesium.HeadingPitchRoll(
-                Cesium.Math.toRadians(rotation),
+                Cesium.Math.toRadians(normalized),
                 0,
                 0
             )
         );
+}
 
-    try {
-        await StructureService.update(id, {
-            rotation
-        });
-    } catch (err) {
-        console.error("Failed to persist rotation:", err);
+
+    showRotationRing(entity) {
+    this.hideRotationRing();
+
+    const position = entity.position.getValue(
+        this.viewer.clock.currentTime
+    );
+
+    this.ringEntity = this.viewer.entities.add({
+        position,
+        ellipse: {
+            semiMajorAxis: this.ringRadius,
+            semiMinorAxis: this.ringRadius,
+            height: 0.1,
+            outline: true,
+            outlineColor: Cesium.Color.YELLOW,
+            outlineWidth: 3,
+            fill: false
+        }
+    });
+
+    console.log("[RotationTool] rotation ring shown");
+}
+
+hideRotationRing() {
+    if (this.ringEntity) {
+        this.viewer.entities.remove(this.ringEntity);
+        this.ringEntity = null;
+        console.log("[RotationTool] rotation ring hidden");
     }
 }
 
 
+
+    // ─────────────────────────────────────────────
+    // BACKEND SAVE (ONCE)
+    // ─────────────────────────────────────────────
+    async persistRotation(entity) {
+        try {
+            const rotation =
+                entity.properties.rotation?.getValue() ?? 0;
+
+            await StructureService.update(entity.id, {
+                rotation
+            });
+
+            console.log("[RotationTool] rotation saved");
+        } catch (err) {
+            console.error(
+                "Failed to persist rotation:",
+                err
+            );
+        }
+    }
 }
