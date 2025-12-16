@@ -6,21 +6,45 @@ export class EditorSelection {
 
         this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
+        // this.handler.setInputAction((movement) => {
+        //     const picked = viewer.scene.pick(movement.position);
+
+        //     let newSelection = null;
+
+        //     if (picked && picked.id && picked.id.properties) {
+        //         newSelection = picked.id;
+        //     }
+
+        //     if (newSelection !== this.selected) {
+        //         this.selected = newSelection;
+        //         this.emitChange();
+        //     }
+
+        // }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
         this.handler.setInputAction((movement) => {
-            const picked = viewer.scene.pick(movement.position);
+    const picked = viewer.scene.pick(movement.position);
 
-            let newSelection = null;
+    console.log("[Selection] Picked:", picked);
 
-            if (picked && picked.id && picked.id.properties) {
-                newSelection = picked.id;
-            }
+    let newSelection = null;
 
-            if (newSelection !== this.selected) {
-                this.selected = newSelection;
-                this.emitChange();
-            }
+    if (picked && picked.id) {
+        console.log("[Selection] Picked entity ID:", picked.id.id);
+        console.log("[Selection] Properties:", picked.id.properties);
+    }
 
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    if (picked && picked.id && picked.id.properties) {
+        newSelection = picked.id;
+    }
+
+    if (newSelection !== this.selected) {
+        console.log("[Selection] Selection changed:", newSelection?.id);
+        this.selected = newSelection;
+        this.emitChange();
+    }
+
+}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     }
 
     onChange(callback) {

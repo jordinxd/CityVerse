@@ -11,21 +11,26 @@ export class EditorToolManager {
     }
 
     activateTool(name) {
-        // If there's a current tool, turn it off
-        if (this.activeTool && this.tools[this.activeTool]) {
-            this.tools[this.activeTool].deactivate();
-        }
-
-        // Register new tool
-        this.activeTool = name;
-
-        // If something is selected, show the gizmo
-        if (this.selection.getSelected()) {
-            this.tools[name].activate();
-        }
-
-        console.log("Active editor tool:", name);
+    // Deactivate current tool
+    if (this.activeTool && this.tools[this.activeTool]) {
+        this.tools[this.activeTool].deactivate();
     }
+
+    if (!this.tools[name]) {
+        console.warn("EditorToolManager: unknown tool:", name);
+        this.activeTool = null;
+        return;
+    }
+
+    this.activeTool = name;
+
+    if (this.selection.getSelected()) {
+        this.tools[name].activate();
+    }
+
+    console.log("Active editor tool:", name);
+}
+
 
     onSelectionChanged() {
         const selected = this.selection.getSelected();

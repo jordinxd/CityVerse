@@ -19,6 +19,13 @@ export const Api = {
             return null;
         }
     },
+    put(url, data) {
+    return fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    }).then(r => r.json());
+},
     delete: (url) =>
         fetch(url, {
             method: "DELETE"

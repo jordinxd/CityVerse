@@ -78,6 +78,10 @@ export class ToolboxController {
         link("btnPlaceRoad", "placeRoad");
         link("btnPlaceTree", "placeTree");
 
+        link("btnRotate", "rotate");
+        link("btnMove", "move");
+        link("btnScale", "scale");
+
         link("btnDelete", "delete");
     }
 }

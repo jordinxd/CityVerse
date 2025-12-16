@@ -11,6 +11,9 @@ export async function loadStructures(viewer) {
                 s.position[1],
                 s.height / 2
             ),
+            properties: new Cesium.PropertyBag({
+                rotation: s.rotation ?? 0
+            }),
             box: {
                 dimensions: new Cesium.Cartesian3(
                     s.width,

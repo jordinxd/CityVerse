@@ -19,6 +19,7 @@ import { loadStructures } from "./ui/drawing/StructureLoader.js";
 import { loadCameras } from "./ui/drawing/CameraLoader.js";
 import { EditorSelection } from "./ui/editor/EditorSelection.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
+import { RotationTool } from "./ui/editor/RotationTool.js";
 import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
 
 
@@ -53,10 +54,14 @@ window.onload = async () => {
     const deleteTool = new DeleteTool(viewer);
     const selection = new EditorSelection(viewer);
     const moveTool = new MoveTool(viewer, selection);
+    const rotationTool = new RotationTool(viewer, selection);
+
 
     const toolManager = new EditorToolManager(viewer, selection, {
-    move: moveTool
+    move: moveTool,
+    rotate: rotationTool
 });
+
 
     // Load saved areas and structures from backend
     try {
