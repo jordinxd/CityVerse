@@ -21,7 +21,6 @@ import { EditorSelection } from "./ui/editor/EditorSelection.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
 import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
-import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 
 
 
