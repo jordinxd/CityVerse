@@ -20,6 +20,15 @@ export function createViewer() {
         selectionIndicator: false,
         shadows: true,
         shouldAnimate: true,
+
+        // Disable base UI components
+        geocoder: false,         
+        homeButton: false,          
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        BaseLayerPicker: false, 
+        animation: false,
+        timeline: false
     });
 
     viewer.scene.primitives.destroyPrimitives = false;
