@@ -20,35 +20,27 @@ import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 // 1. DE ANALYSE FUNCTIE (Nu buiten window.onload geplaatst)
 // ------------------------------------------------------------------
 async function startAnalysis(btnElement) {
-    // 1. Vind de parent container (agent-card) en de text span
     const card = btnElement.closest('.agent-card');
     const actionDiv = btnElement.closest('.agent-action');
     const textSpan = actionDiv.querySelector('span');
     const iconSvg = btnElement.querySelector('svg');
 
-    // 2. STATUS: LADEN (Zandloper)
     textSpan.innerText = "Bezig met analyse...";
     
-    // Verander icoon naar zandloper (Hourglass)
     iconSvg.innerHTML = '<path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"/>';
     iconSvg.classList.add('spinning'); // Start draaien
     btnElement.disabled = true; // Voorkom dubbel klikken
 
     try {
-        // 3. ROEP BACKEND AAN (Hier voert Java de ai.py uit)
-        // Let op: pas de URL aan naar jouw Spring Boot endpoint
         const response = await fetch('http://localhost:3000/api/run-ai');
         const data = await response.json(); 
         
-        // 4. STATUS: KLAAR (Dropdown modus)
         iconSvg.classList.remove('spinning');
         btnElement.disabled = false;
 
-        // Verander tekst en icoon naar 'Dropdown pijl'
         textSpan.innerText = "Bekijk analyse";
         iconSvg.innerHTML = '<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>';
 
-        // 5. INJECTEER DE RESULTATEN (Als ze er nog niet zijn)
         let detailsDiv = card.querySelector('.analysis-details');
         if (!detailsDiv) {
             detailsDiv = document.createElement('div');
@@ -56,18 +48,15 @@ async function startAnalysis(btnElement) {
             card.appendChild(detailsDiv);
         }
 
-        // Vul de data in
         detailsDiv.innerHTML = `
             <div><span class="score-badge">Score: ${data.quality_of_life_score}/100</span></div>
             <div><em>"${data.justification}"</em></div>
         `;
 
-        // 6. MAAK DE KNOP KLIKBAAR VOOR DROPDOWN
-        // We verwijderen de oude onclick en zetten er een toggle functie op
         btnElement.onclick = (e) => {
             e.stopPropagation(); // Voorkom dat andere kliks afgaan
             detailsDiv.classList.toggle('open');
-            // Icoon draaien als hij open is (optioneel)
+            // Icoon draaien als hij open is
             btnElement.style.transform = detailsDiv.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
         };
 
