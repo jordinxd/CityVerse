@@ -49,7 +49,7 @@ export class StructureDrawer {
             width: 6,
             depth: 6,
             height: 10,
-            style: { color: "#AA8833" }
+            style: { color: "#ff00b4" }
         };
 
         console.log("Creating structure:", structure);
@@ -86,7 +86,7 @@ export class StructureDrawer {
                     structure.height
                 ),
                 material: Cesium.Color.fromCssColorString(
-                    structure.style.color ?? "#AA8833"
+                    structure.style.color ?? "#ff00f9"
                 )
             }
         });
