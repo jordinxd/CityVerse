@@ -35,7 +35,7 @@ export class StructureDrawer {
     }
 
     deactivate() {
-        this.active = false
+        this.active = false;
     }
 
     async placeStructure(lon, lat) {

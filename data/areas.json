@@ -58,4 +58,16 @@
     "outlineWidth" : 2,
     "heightOffset" : 0.1
   }
+}, {
+  "id" : "smile",
+  "name" : "Smile",
+  "polygon" : [ [ 5.780764760189575, 53.19594170287707 ], [ 5.781385528276298, 53.19598017536289 ], [ 5.781013076432376, 53.1955982828869 ] ],
+  "allowedTypes" : [ "building", "road", "green" ],
+  "style" : {
+    "fillColor" : "#00AEEF",
+    "fillOpacity" : 0.25,
+    "outlineColor" : "#003F7F",
+    "outlineWidth" : 2,
+    "heightOffset" : 0.1
+  }
 } ]
