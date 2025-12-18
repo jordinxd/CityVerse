@@ -21,16 +21,11 @@ import { EditorSelection } from "./ui/editor/EditorSelection.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
 import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
-
-
-
-window.onload = async () => {
 import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 
 
-// ------------------------------------------------------------------
-// 1. DE ANALYSE FUNCTIE (Nu buiten window.onload geplaatst)
-// ------------------------------------------------------------------
+
+
 async function startAnalysis(btnElement) {
     const card = btnElement.closest('.agent-card');
     const actionDiv = btnElement.closest('.agent-action');
