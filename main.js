@@ -2,10 +2,7 @@ import { createViewer } from "./core/CesiumSetup.js";
 import { fetchBackendMessage } from "./Core/BackendCheck.js";
 import { latlonFromXY } from "./Core/CoordinateUtils.js";
 
-import {
-    createBox,
-    createModel
-} from "./Core/EntityFactory.js";
+import { createBox, createModel } from "./Core/EntityFactory.js";
 
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
@@ -22,9 +19,6 @@ import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
 import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
 
-
-
-
 async function startAnalysis(btnElement) {
     const card = btnElement.closest('.agent-card');
     const actionDiv = btnElement.closest('.agent-action');
@@ -32,18 +26,16 @@ async function startAnalysis(btnElement) {
     const iconSvg = btnElement.querySelector('svg');
 
     textSpan.innerText = "Bezig met analyse...";
-    
     iconSvg.innerHTML = '<path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"/>';
-    iconSvg.classList.add('spinning'); // Start draaien
-    btnElement.disabled = true; // Voorkom dubbel klikken
+    iconSvg.classList.add('spinning');
+    btnElement.disabled = true;
 
     try {
-        const response = await fetch('http://localhost:3000/api/run-ai');
-        const data = await response.json(); 
-        
+        const response = await fetch('http://localhost:8080/api/run-ai');
+        const data = await response.json();
+
         iconSvg.classList.remove('spinning');
         btnElement.disabled = false;
-
         textSpan.innerText = "Bekijk analyse";
         iconSvg.innerHTML = '<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>';
 
@@ -60,13 +52,11 @@ async function startAnalysis(btnElement) {
         `;
 
         btnElement.onclick = (e) => {
-            e.stopPropagation(); // Voorkom dat andere kliks afgaan
+            e.stopPropagation();
             detailsDiv.classList.toggle('open');
-            // Icoon draaien als hij open is
             btnElement.style.transform = detailsDiv.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
         };
 
-        // Open hem direct de eerste keer
         detailsDiv.classList.add('open');
         btnElement.style.transform = 'rotate(180deg)';
 
@@ -74,21 +64,14 @@ async function startAnalysis(btnElement) {
         console.error(error);
         textSpan.innerText = "Fout bij analyse";
         iconSvg.classList.remove('spinning');
-        btnElement.disabled = false; // Zorg dat je het opnieuw kunt proberen bij fout
+        btnElement.disabled = false;
     }
 }
-
 
 window.startAnalysis = startAnalysis;
 
 window.onload = () => {
-
-    // NOTE: removed global click preventDefault which interfered with
-    // normal UI events (it could cancel drawing or stop button handlers).
-
     const viewer = createViewer();
-
-    // Camera drawer voor interacties
     const cameraDrawer = new CameraDrawer(viewer);
 
     // Example entities
@@ -105,30 +88,26 @@ window.onload = () => {
         }
     });
 
-    // Example boxes
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
     createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
 
-    // Create tool instances
+    // Tools
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
     const selection = new EditorSelection(viewer);
     const moveTool = new MoveTool(viewer, selection);
     const rotationTool = new RotationTool(viewer, selection);
-
-
     const toolManager = new EditorToolManager(viewer, selection, {
-    move: moveTool,
-    rotate: rotationTool
-});
+        move: moveTool,
+        rotate: rotationTool
+    });
 
-
-    // Load saved areas and structures from backend
+    // Load saved entities
     try {
-     loadAreas(viewer);
-     loadStructures(viewer);
-     loadCameras(viewer, cameraDrawer);
+        loadAreas(viewer);
+        loadStructures(viewer);
+        loadCameras(viewer, cameraDrawer);
         console.log("Entities loaded from backend");
     } catch (err) {
         console.error("Failed to load entities:", err);
@@ -136,25 +115,51 @@ window.onload = () => {
 
     const toolbox = new ToolboxController();
 
-    // Camera callbacks
+    // Camera
     toolbox.on("placeCamera", () => cameraDrawer.startPlacement());
     toolbox.on("saveCamera", () => cameraDrawer.saveCurrentCamera());
 
-    // Connect UI actions to Cesium actions
+    // Area drawing with save
     toolbox.on("drawArea", () => areaDrawer.start());
-    toolbox.on("finishArea", () => areaDrawer.finish(prompt("Name:")));
+    toolbox.on("finishArea", async () => {
+        const name = prompt("Name:");
+        if (!name) return;
+
+        let polygon = areaDrawer.finish(name);
+        if (!Array.isArray(polygon)) polygon = [];
+
+        polygon = polygon.map(cart => {
+            const c = Cesium.Cartographic.fromCartesian(cart);
+            return [Cesium.Math.toDegrees(c.latitude), Cesium.Math.toDegrees(c.longitude)];
+        });
+
+        if (polygon.length > 0) {
+            try {
+                const response = await fetch("http://localhost:8080/areas", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: name, polygon: polygon })
+                });
+                const saved = await response.json();
+                console.log("Area saved to backend:", saved);
+            } catch (err) {
+                console.error("Failed to save area:", err);
+            }
+        }
+    });
     toolbox.on("cancelArea", () => areaDrawer.cancel());
 
+    // Structure placement
     toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
     toolbox.on("placeRoad", () => structureDrawer.activate("road"));
     toolbox.on("placeTree", () => structureDrawer.activate("tree"));
 
+    // Editor tools
     toolbox.on("move", () => toolManager.activateTool("move"));
     toolbox.on("rotate", () => toolManager.activateTool("rotate"));
     toolbox.on("scale", () => toolManager.activateTool("scale"));
-    
-    // Deactivate all tools when switching away from current tool
-    toolbox.on("deactivate", (action) => {
+
+    toolbox.on("deactivate", () => {
         areaDrawer.cancel();
         structureDrawer.deactivate();
         deleteTool.deactivate();
@@ -162,11 +167,9 @@ window.onload = () => {
     });
 
     toolbox.on("delete", () => {
-        // Deactivate other tools first
         areaDrawer.cancel();
         structureDrawer.deactivate();
         toolManager.deactivateAll();
-        // Then activate delete
         deleteTool.activate();
     });
 

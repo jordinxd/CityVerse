@@ -30,8 +30,8 @@ public class AreaController {
 
     @PostMapping
     public Area create(@RequestBody Area area) {
-        service.add(area);
-        return area;
+        Area saved = service.add(area);
+        return saved;
     }
 
     @DeleteMapping("/{id}")
