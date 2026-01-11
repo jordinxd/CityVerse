@@ -52,8 +52,9 @@ window.onload = async () => {
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
-    const selection = new EditorSelection(viewer);
-    const moveTool = new MoveTool(viewer, selection);
+    const moveTool = new MoveTool(viewer, null); // Initialize without selection first
+    const selection = new EditorSelection(viewer, moveTool);
+    moveTool.selection = selection; // Now set the reference
     const rotationTool = new RotationTool(viewer, selection);
 
 
