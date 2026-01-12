@@ -24,7 +24,7 @@
   "id" : "0206d0ba-282b-496d-aebd-171efd8aa019",
   "type" : "building",
   "position" : [ 5.775780384236587, 53.19658338918117 ],
-  "rotation" : 334.206882474459,
+  "rotation" : 355.0859372447519,
   "width" : 6.0,
   "depth" : 6.0,
   "height" : 10.0,
@@ -78,19 +78,8 @@
 }, {
   "id" : "45fc077c-937d-45ed-8e22-b7b9991cec7d",
   "type" : "building",
-  "position" : [ 5.77580061270558, 53.19621148031655 ],
-  "rotation" : 0.0,
-  "width" : 6.0,
-  "depth" : 6.0,
-  "height" : 10.0,
-  "style" : {
-    "color" : "#AA8833"
-  }
-}, {
-  "id" : "df57088e-74e9-45b6-ad68-110df4d4a9f7",
-  "type" : "building",
-  "position" : [ 5.775786619527309, 53.19611544837528 ],
-  "rotation" : 176.62076456653074,
+  "position" : [ 5.775514733065251, 53.196244624105404 ],
+  "rotation" : 139.49600524011635,
   "width" : 6.0,
   "depth" : 6.0,
   "height" : 10.0,

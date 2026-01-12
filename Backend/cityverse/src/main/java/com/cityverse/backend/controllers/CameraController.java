@@ -2,38 +2,39 @@ package com.cityverse.backend.controllers;
 
 import com.cityverse.backend.models.Camera;
 import com.cityverse.backend.services.CameraService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
-// REST controller to manage cameras: list, create, and delete
 @RestController
 @RequestMapping("/cameras")
 public class CameraController {
+    private final CameraService cameraService;
 
-    private final CameraService service;
-
-    // Inject the CameraService
-    public CameraController(CameraService service) {
-        this.service = service;
+    public CameraController(CameraService cameraService) {
+        this.cameraService = cameraService;
     }
 
-    // GET /cameras - return all cameras
     @GetMapping
-    public List<Camera> getAll() {
-        return service.getAll();
+    public List<Camera> getAllCameras() {
+        return cameraService.getAll();
     }
 
-    // POST /cameras - create a new camera
     @PostMapping
-    public Camera create(@RequestBody Camera c) {
-        service.add(c); // add to backend storage
-        return c;       // return the saved camera
+    public ResponseEntity<Camera> createCamera(@RequestBody Camera camera) {
+        // Generate UUID if not provided
+        if (camera.getId() == null) {
+            camera.setId(UUID.randomUUID());
+        }
+        cameraService.add(camera);
+        return ResponseEntity.ok(camera);
     }
 
-    // DELETE /cameras/{id} - remove camera by ID
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        service.delete(id); // delete from backend storage
+    public ResponseEntity<Void> deleteCamera(@PathVariable UUID id) {
+        cameraService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

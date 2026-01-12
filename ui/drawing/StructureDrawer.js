@@ -91,4 +91,55 @@ export class StructureDrawer {
             }
         });
     }
+
+    // Update an existing structure's visual representation
+    updateVisual(structureId, updates) {
+        const entity = this.viewer.entities.getById(structureId);
+        if (!entity) {
+            console.warn("Structure entity not found for update:", structureId);
+            return false;
+        }
+
+        // Update rotation if provided
+        if (updates.rotation !== undefined) {
+            const [lon, lat] = updates.position || this.getStructurePosition(structureId);
+
+            // Update the orientation based on new rotation
+            entity.orientation = Cesium.Transforms.headingPitchRollQuaternion(
+                Cesium.Cartesian3.fromDegrees(lon, lat),
+                new Cesium.HeadingPitchRoll(
+                    Cesium.Math.toRadians(updates.rotation),
+                    0,
+                    0
+                )
+            );
+
+            // Update the properties to reflect the new rotation
+            if (entity.properties) {
+                entity.properties.rotation = updates.rotation;
+            }
+        }
+
+        // Update position if provided
+        if (updates.position) {
+            const [lon, lat] = updates.position;
+            entity.position = Cesium.Cartesian3.fromDegrees(lon, lat, updates.height || 5); // Default height if not provided
+        }
+
+        console.log("[StructureDrawer] Updated structure visual:", structureId, updates);
+        return true;
+    }
+
+    // Helper method to get current structure position
+    getStructurePosition(structureId) {
+        const entity = this.viewer.entities.getById(structureId);
+        if (!entity || !entity.position) {
+            console.warn("Could not get position for structure:", structureId);
+            return [0, 0]; // Default fallback
+        }
+
+        const currentPosition = entity.position.getValue(Cesium.JulianDate.now());
+        const cartographic = Cesium.Cartographic.fromCartesian(currentPosition);
+        return [Cesium.Math.toDegrees(cartographic.longitude), Cesium.Math.toDegrees(cartographic.latitude)];
+    }
 }

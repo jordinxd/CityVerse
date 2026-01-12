@@ -72,7 +72,17 @@ window.startAnalysis = startAnalysis;
 
 window.onload = () => {
     const viewer = createViewer();
+
+    // Create tool instances
     const cameraDrawer = new CameraDrawer(viewer);
+    const selection = new EditorSelection(viewer, cameraDrawer);
+    // Pass the selection to cameraDrawer after both are initialized to avoid circular dependency
+    cameraDrawer.editorSelection = selection;
+    const areaDrawer = new AreaDrawer(viewer);
+    const structureDrawer = new StructureDrawer(viewer);
+    const deleteTool = new DeleteTool(viewer);
+    const moveTool = new MoveTool(viewer, selection);
+    const rotationTool = new RotationTool(viewer, selection);
 
     // Example entities
     const testLabelPos = latlonFromXY(220, 70);
@@ -91,13 +101,7 @@ window.onload = () => {
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
     createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
 
-    // Tools
-    const areaDrawer = new AreaDrawer(viewer);
-    const structureDrawer = new StructureDrawer(viewer);
-    const deleteTool = new DeleteTool(viewer);
-    const selection = new EditorSelection(viewer);
-    const moveTool = new MoveTool(viewer, selection);
-    const rotationTool = new RotationTool(viewer, selection);
+    // Create tool instances
     const toolManager = new EditorToolManager(viewer, selection, {
         move: moveTool,
         rotate: rotationTool
@@ -119,7 +123,7 @@ window.onload = () => {
     toolbox.on("placeCamera", () => cameraDrawer.startPlacement());
     toolbox.on("saveCamera", () => cameraDrawer.saveCurrentCamera());
 
-    // Area drawing with save
+    // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());
     toolbox.on("finishArea", async () => {
         const name = prompt("Name:");
@@ -172,6 +176,7 @@ window.onload = () => {
         toolManager.deactivateAll();
         deleteTool.activate();
     });
+
 
     // Models
     createModel(viewer, "Cesium_Man.glb", latlonFromXY(220, 70), 0);
