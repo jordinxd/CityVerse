@@ -4,22 +4,31 @@ import java.util.List;
 import java.util.UUID;
 
 public class Camera {
-    private UUID id;
-    private List<Double> position; // [x, y, z coordinates]
-    private double heading;
-    private double pitch;
-    private double roll;
-    private double height;
+    private String id; // Use String like Structure instead of UUID
+    private String type; // Add type like Structure
+    private List<Double> position; // [longitude, latitude, height] like structures
+    private Double rotation; // Like structures
+    private Double width; // Like structures
+    private Double depth; // Like structures
+    private Double height; // Like structures
 
     public Camera() {}
 
     // Getters and setters
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<Double> getPosition() {
@@ -30,35 +39,35 @@ public class Camera {
         this.position = position;
     }
 
-    public double getHeading() {
-        return heading;
+    public Double getRotation() {
+        return rotation;
     }
 
-    public void setHeading(double heading) {
-        this.heading = heading;
+    public void setRotation(Double rotation) {
+        this.rotation = rotation;
     }
 
-    public double getPitch() {
-        return pitch;
+    public Double getWidth() {
+        return width;
     }
 
-    public void setPitch(double pitch) {
-        this.pitch = pitch;
+    public void setWidth(Double width) {
+        this.width = width;
     }
 
-    public double getRoll() {
-        return roll;
+    public Double getDepth() {
+        return depth;
     }
 
-    public void setRoll(double roll) {
-        this.roll = roll;
+    public void setDepth(Double depth) {
+        this.depth = depth;
     }
 
-    public double getHeight() {
+    public Double getHeight() {
         return height;
     }
 
-    public void setHeight(double height) {
+    public void setHeight(Double height) {
         this.height = height;
     }
 }

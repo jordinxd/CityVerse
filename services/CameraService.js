@@ -5,9 +5,9 @@ const BASE = "http://localhost:3000/cameras";
 export const CameraService = {
     getAll: () => Api.get(BASE),
     create: (cam) => {
-        // Generate a UUID if not provided
+        // Generate an ID if not provided (using crypto.randomUUID or fallback)
         if (!cam.id) {
-            cam.id = crypto.randomUUID();
+            cam.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
         }
         return Api.post(BASE, cam);
     },

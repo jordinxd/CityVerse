@@ -252,10 +252,8 @@ export class RotationTool {
 
                     // Update camera with new rotation (heading) while preserving other orientation data
                     await CameraService.update(entity.id, {
-                        position: [lon, lat, height],
-                        heading: rotation, // Use rotation as heading for camera
-                        pitch: 0, // Default pitch
-                        roll: 0   // Default roll
+                        position: [lon, lat, height], // Include position to ensure it's preserved
+                        rotation: rotation // Use rotation as heading for camera
                     });
                     console.log("[RotationTool] Camera rotation saved");
 

@@ -20,12 +20,25 @@ export const Api = {
         }
     },
     put(url, data) {
-    return fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    }).then(r => r.json());
-},
+        return fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(async r => {
+            try {
+                const text = await r.text();
+                if (text) {
+                    return JSON.parse(text);
+                } else {
+                    // Return success response if no content is returned (e.g., 204 No Content)
+                    return { status: r.status, ok: r.ok };
+                }
+            } catch (e) {
+                console.error("JSON PARSE FAILED", e);
+                return null;
+            }
+        });
+    },
     delete: (url) =>
         fetch(url, {
             method: "DELETE"

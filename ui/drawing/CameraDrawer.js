@@ -109,12 +109,6 @@ export class CameraDrawer {
             if (heightInput !== null) height = parseFloat(heightInput);
 
             const headingDegrees = parseFloat(prompt("Heading (degrees, 0-360):", "0"));
-            const pitchDegrees = parseFloat(prompt("Pitch (degrees, up/down):", "0"));
-            const rollDegrees = 0;
-
-            const heading = Cesium.Math.toRadians(headingDegrees);
-            const pitch = Cesium.Math.toRadians(pitchDegrees);
-            const roll = Cesium.Math.toRadians(rollDegrees);
 
             const cameraPosition = Cesium.Cartesian3.fromDegrees(
                 Cesium.Math.toDegrees(cartographic.longitude),
@@ -122,14 +116,14 @@ export class CameraDrawer {
                 height
             );
 
-            // Create quaternion for camera orientation
+            // Create quaternion for camera orientation based on heading
             const cameraOrientation = Cesium.Transforms.headingPitchRollQuaternion(
                 cameraPosition,
-                new Cesium.HeadingPitchRoll(heading, pitch, roll)
+                new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(headingDegrees), 0, 0) // Just heading, no pitch/roll
             );
 
             // Add Cesium Man model for camera (shows orientation visually)
-            const cameraId = crypto.randomUUID();
+            const cameraId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
             this.viewer.entities.add({
                 id: cameraId,
                 position: cameraPosition,
@@ -142,15 +136,16 @@ export class CameraDrawer {
                 }
             });
 
-            // Store camera data along with viewer state for fly-to
+            // Store camera data in a simplified format similar to structures
+            const lon = Cesium.Math.toDegrees(cartographic.longitude);
+            const lat = Cesium.Math.toDegrees(cartographic.latitude);
+
             const cameraData = {
                 id: cameraId,
-                position: [cameraPosition.x, cameraPosition.y, cameraPosition.z],
-                orientation: cameraOrientation,
-                viewerState: {
-                    destination: cameraPosition.clone(),
-                    orientation: cameraOrientation.clone()
-                }
+                type: "camera", // Similar to structures
+                position: [lon, lat, height], // [longitude, latitude, height] like structures
+                rotation: headingDegrees, // Like structures
+                height: height // Like structures
             };
 
             this.cameraDataList.push(cameraData);
@@ -170,28 +165,37 @@ export class CameraDrawer {
         await CameraService.delete(cameraId);
     }
 
-    // Update stored camera data when camera is moved or rotated
+    // Update stored camera data when camera is moved or rotated - simplified version
     updateStoredCameraData(cameraId) {
         const entity = this.viewer.entities.getById(cameraId);
-        if (!entity || !entity.position || !entity.orientation) {
+        if (!entity || !entity.position) {
             console.warn("[CameraDrawer] Could not update stored data for camera:", cameraId);
             return false;
         }
 
-        // Get current position and orientation from the visual entity
+        // Get current position from the visual entity
         const currentPosition = entity.position.getValue(Cesium.JulianDate.now());
-        const currentOrientation = entity.orientation.getValue(Cesium.JulianDate.now());
+        const cartographic = Cesium.Cartographic.fromCartesian(currentPosition);
+        const lon = Cesium.Math.toDegrees(cartographic.longitude);
+        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+        const height = cartographic.height;
+
+        // Get rotation from entity properties if available
+        let rotation = 0;
+        if (entity.properties && entity.properties.rotation) {
+            rotation = entity.properties.rotation.getValue ?
+                entity.properties.rotation.getValue() :
+                entity.properties.rotation;
+        }
 
         // Find and update the camera data in the list
         const index = this.cameraDataList.findIndex(c => c.id === cameraId);
         if (index >= 0) {
-            // Update the existing camera data
-            this.cameraDataList[index].position = [currentPosition.x, currentPosition.y, currentPosition.z];
-            this.cameraDataList[index].orientation = currentOrientation;
-            this.cameraDataList[index].viewerState = {
-                destination: currentPosition.clone(),
-                orientation: currentOrientation.clone()
-            };
+            // Update the existing camera data in structure similar to backend
+            this.cameraDataList[index].position = [lon, lat, height];
+            this.cameraDataList[index].rotation = rotation;
+            this.cameraDataList[index].height = height;
+
             console.log("[CameraDrawer] Updated stored camera data for:", cameraId);
             return true;
         } else {
@@ -220,39 +224,27 @@ export class CameraDrawer {
                     console.warn("[CameraDrawer] Camera data not found in service:", cameraId);
                     return;
                 }
-
-                // Convert service data to the format expected by flyTo
-                const cartesianPos = Cesium.Cartesian3.fromArray(cameraData.position);
-                const cameraOrientation = cameraData.orientation ?
-                    Cesium.Quaternion.unpack(cameraData.orientation) :
-                    Cesium.Transforms.headingPitchRollQuaternion(
-                        cartesianPos,
-                        new Cesium.HeadingPitchRoll(cameraData.heading || 0, cameraData.pitch || 0, cameraData.roll || 0)
-                    );
-
-                // Create viewer state for this fly-to operation
-                cameraData.viewerState = {
-                    destination: cartesianPos.clone(),
-                    orientation: cameraOrientation.clone()
-                };
             } catch (error) {
                 console.error("[CameraDrawer] Error retrieving camera data:", error);
                 return;
             }
         }
 
-        if (!cameraData || !cameraData.viewerState) {
-            console.warn("[CameraDrawer] Camera data or viewer state not available:", cameraId);
+        if (!cameraData || !cameraData.position) {
+            console.warn("[CameraDrawer] Camera data or position not available:", cameraId);
             return;
         }
 
-        // Use stored viewer state - fly to the exact position and orientation of the camera model
-        // This will position the viewer at the Cesium Man's location, looking in the same direction (first-person view)
+        // Convert position array [lon, lat, height] to Cartesian3
+        const destination = Cesium.Cartesian3.fromDegrees(
+            cameraData.position[0], // longitude
+            cameraData.position[1], // latitude
+            cameraData.position[2]  // height
+        );
+
+        // Use stored viewer state - fly to the exact position of the camera model
         this.viewer.camera.flyTo({
-            destination: cameraData.viewerState.destination,
-            orientation: {
-                quaternion: cameraData.viewerState.orientation
-            },
+            destination: destination,
             duration: 2
         });
 

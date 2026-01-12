@@ -122,6 +122,8 @@ window.onload = () => {
     // Camera
     toolbox.on("placeCamera", () => cameraDrawer.startPlacement());
     toolbox.on("saveCamera", () => cameraDrawer.saveCurrentCamera());
+    toolbox.on("flyToCamera", () => cameraDrawer.flyToCamera());
+    toolbox.on("screenshotCamera", () => cameraDrawer.takeScreenshot());
 
     // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());

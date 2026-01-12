@@ -187,8 +187,22 @@ export class MoveTool {
             // Check if it's a camera or structure and update accordingly
             if (entity.model) {
                 // It's a camera entity (using Cesium Man model)
+                // Send position as [longitude, latitude, height] array
+                const positionArray = [lon, lat, height];
+
+                // Get the current rotation if it exists
+                let currentRotation = 0;
+                if (entity.properties && entity.properties.rotation) {
+                    const rotation = entity.properties.rotation.getValue ?
+                        entity.properties.rotation.getValue() :
+                        entity.properties.rotation;
+                    currentRotation = rotation;
+                }
+
                 await CameraService.update(entity.id, {
-                    position: [lon, lat, height]
+                    position: positionArray,
+                    height: height,  // Send height separately as the backend expects it
+                    rotation: currentRotation  // Preserve the current rotation
                 });
                 console.log("[MoveTool] Camera position saved");
 

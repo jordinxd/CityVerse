@@ -7,23 +7,27 @@ export async function loadCameras(viewer, cameraDrawer) {
         console.log("[CameraLoader] Loaded cameras:", cameras.length);
 
         cameras.forEach(cam => {
-            const { id, position, orientation } = cam;
+            const { id, position, rotation } = cam;
 
             // Create camera entity in Cesium
-            const cartesianPos = Cesium.Cartesian3.fromArray(position);
-            const cameraOrientation = orientation ?
-                Cesium.Quaternion.unpack(orientation) :
-                Cesium.Transforms.headingPitchRollQuaternion(
-                    cartesianPos,
-                    new Cesium.HeadingPitchRoll(cam.heading || 0, cam.pitch || 0, cam.roll || 0)
-                );
+            const cartesianPos = Cesium.Cartesian3.fromDegrees(position[0], position[1], position[2]);
+
+            // Create orientation based on rotation (heading)
+            const cameraOrientation = Cesium.Transforms.headingPitchRollQuaternion(
+                cartesianPos,
+                new Cesium.HeadingPitchRoll(
+                    Cesium.Math.toRadians(rotation || 0), // Use rotation as heading
+                    0, // Default pitch
+                    0  // Default roll
+                )
+            );
 
             cameraDrawer.viewer.entities.add({
                 id,
                 position: cartesianPos,
                 orientation: cameraOrientation,
                 properties: {
-                    rotation: cam.heading || 0 // Store rotation from camera data
+                    rotation: rotation || 0 // Store rotation from camera data
                 },
                 model: {
                     uri: "Cesium_Man.glb",  // Using the Cesium Man model from the project root
@@ -35,27 +39,23 @@ export async function loadCameras(viewer, cameraDrawer) {
 
             // Store camera data in CameraDrawer for fly-to functionality after reload
             if (cameraDrawer.cameraDataList) {
-                // Create viewer state for fly-to functionality
-                const viewerState = {
-                    destination: cartesianPos.clone(),
-                    orientation: cameraOrientation.clone()
-                };
-
                 // Check if camera already exists in the list to avoid duplicates
                 const existingIndex = cameraDrawer.cameraDataList.findIndex(c => c.id === id);
                 if (existingIndex >= 0) {
                     cameraDrawer.cameraDataList[existingIndex] = {
                         id,
+                        type: cam.type || "camera",
                         position,
-                        orientation: cameraOrientation,
-                        viewerState
+                        rotation: rotation || 0,
+                        height: position[2]
                     };
                 } else {
                     cameraDrawer.cameraDataList.push({
                         id,
+                        type: cam.type || "camera",
                         position,
-                        orientation: cameraOrientation,
-                        viewerState
+                        rotation: rotation || 0,
+                        height: position[2]
                     });
                 }
             }
