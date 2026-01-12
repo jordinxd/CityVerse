@@ -1,6 +1,6 @@
-import { Api } from "./ApiService.js";
+import { Api, BACKEND_URL } from "./ApiService.js";
 
-const BASE = "http://localhost:3000/structures";
+const BASE = `${BACKEND_URL}/structures`;
 
 export const StructureService = {
     getAll: () => Api.get(BASE),

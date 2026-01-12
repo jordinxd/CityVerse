@@ -1,6 +1,6 @@
-import { Api } from "./ApiService.js";
+import { Api, BACKEND_URL } from "./ApiService.js";
 
-const BASE = "http://localhost:3000/areas";
+const BASE = `${BACKEND_URL}/areas`;
 
 export const AreaService = {
     getAll: () => Api.get(BASE),

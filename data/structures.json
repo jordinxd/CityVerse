@@ -130,4 +130,26 @@
   "style" : {
     "color" : "#AA8833"
   }
+}, {
+  "id" : "e19bfbd7-ba4a-4035-9903-9348f4004323",
+  "type" : "road",
+  "position" : [ 5.778881371506054, 53.19702278606298 ],
+  "rotation" : 0.0,
+  "width" : 6.0,
+  "depth" : 6.0,
+  "height" : 10.0,
+  "style" : {
+    "color" : "#ff00b4"
+  }
+}, {
+  "id" : "6f057c88-3597-4a09-8fba-6ac7a47048c0",
+  "type" : "road",
+  "position" : [ 5.77829548643042, 53.19682169263717 ],
+  "rotation" : 0.0,
+  "width" : 6.0,
+  "depth" : 6.0,
+  "height" : 10.0,
+  "style" : {
+    "color" : "#ff00b4"
+  }
 } ]

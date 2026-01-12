@@ -1,7 +1,10 @@
+export const BACKEND_URL = "http://localhost:3000";
+
 export const Api = {
     get: (url) => fetch(url).then(async r => {
         try { return await r.json(); } catch(e) { return null; }
     }),
+
     post: async (url, data) => {
         const r = await fetch(url, {
             method: "POST",
@@ -19,17 +22,19 @@ export const Api = {
             return null;
         }
     },
+
     put(url, data) {
-    return fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    }).then(r => r.json());
-},
+        return fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(r => r.json());
+    },
+
     delete: (url) =>
-        fetch(url, {
-            method: "DELETE"
-        }).then(async r => {
-            try { return await r.json(); } catch (e) { return { status: r.status, ok: r.ok }; }
-        })
+        fetch(url, { method: "DELETE" })
+            .then(async r => {
+                try { return await r.json(); }
+                catch { return { status: r.status, ok: r.ok }; }
+            })
 };
