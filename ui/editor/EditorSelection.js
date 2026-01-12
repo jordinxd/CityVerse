@@ -2,14 +2,15 @@
  * EditorSelection: Manages entity selection with tool-aware click handling
  * 
  * Click Priority:
- * 1. If a tool (e.g., MoveTool) consumed the click on a gizmo, skip selection
+ * 1. If a tool (e.g., MoveTool, RotationTool) consumed the click on a gizmo, skip selection
  * 2. If clicking a building entity, select it
  * 3. If clicking empty space, clear selection
  */
 export class EditorSelection {
-    constructor(viewer, moveTool) {
+    constructor(viewer, moveTool, rotationTool) {
         this.viewer = viewer;
         this.moveTool = moveTool;
+        this.rotationTool = rotationTool;
         this.selected = null;
         this.callbacks = [];
 
@@ -24,9 +25,14 @@ export class EditorSelection {
      * Handle left click with proper tool priority
      */
     onLeftClick(movement) {
-        // Priority 1: Check if a tool (e.g., MoveTool) handles this click
+        // Priority 1: Check if a tool (e.g., MoveTool, RotationTool) handles this click
         if (this.moveTool && this.moveTool.handlesClick(movement.position)) {
             console.log("[Selection] Tool consumed click on gizmo");
+            return; // Don't change selection
+        }
+
+        if (this.rotationTool && this.rotationTool.handlesClick(movement.position)) {
+            console.log("[Selection] Tool consumed click on rotation ring");
             return; // Don't change selection
         }
 
