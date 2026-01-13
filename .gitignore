@@ -22,3 +22,6 @@ Cesium*/bin/
 
 # Lock files (optional for school projects)
 package-lock.json
+
+#personal application properties
+Backend/cityverse/src/main/resources/application.properties
