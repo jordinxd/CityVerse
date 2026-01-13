@@ -31,7 +31,7 @@ async function startAnalysis(btnElement) {
     btnElement.disabled = true;
 
     try {
-        const response = await fetch('http://localhost:8080/api/run-ai');
+        const response = await fetch('http://localhost:3000/api/run-ai');
         const data = await response.json();
 
         iconSvg.classList.remove('spinning');
