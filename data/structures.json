@@ -152,4 +152,37 @@
   "style" : {
     "color" : "#ff00b4"
   }
+}, {
+  "id" : "405f13a0-bdc4-422f-b0c3-6242d1555969",
+  "type" : "road",
+  "position" : [ 5.777698892424198, 53.1968881204795 ],
+  "rotation" : 0.0,
+  "width" : 6.0,
+  "depth" : 6.0,
+  "height" : 10.0,
+  "style" : {
+    "color" : "#ff00b4"
+  }
+}, {
+  "id" : "d413a6f3-89c6-469d-acd0-bad39011ea84",
+  "type" : "road",
+  "position" : [ 5.777357514454734, 53.19659533325807 ],
+  "rotation" : 0.0,
+  "width" : 6.0,
+  "depth" : 6.0,
+  "height" : 10.0,
+  "style" : {
+    "color" : "#ff00b4"
+  }
+}, {
+  "id" : "04efca82-1598-4775-8c06-d4af6b53eccf",
+  "type" : "tree",
+  "position" : [ 5.777719598813668, 53.19664888363926 ],
+  "rotation" : 0.0,
+  "width" : 6.0,
+  "depth" : 6.0,
+  "height" : 10.0,
+  "style" : {
+    "color" : "#ff00b4"
+  }
 } ]
