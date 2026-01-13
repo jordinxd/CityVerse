@@ -7,7 +7,7 @@ from pathlib import Path
 # We bepalen het pad dynamisch, zodat Java het bestand altijd kan vinden
 # ongeacht vanuit welke map het commando wordt uitgevoerd.
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-IMAGE_PATH = os.path.join(SCRIPT_DIR, "test.png") # Zorg dat test.png in de AI_Functionality map staat
+IMAGE_PATH = os.path.join(SCRIPT_DIR, "city_2.jpg") # Zorg dat test.png in de AI_Functionality map staat
 MODEL_NAME = "moondream"
 
 def analyze_image(image_path):

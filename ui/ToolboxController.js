@@ -42,7 +42,7 @@ export class ToolboxController {
         // Certain actions are immediate commands and should not toggle or
         // deactivate the currently active tool. For example, "finishArea"
         // finalizes a drawing and must run while the draw tool is still active.
-        const nonToggleActions = new Set(["finishArea", "cancelArea, saveCamera"]);
+        const nonToggleActions = new Set(["finishArea", "cancelArea", "flyToCamera", "screenshotCamera", "moveCamera", "rotateCamera"]);
 
         const link = (id, action) => {
             const btn = document.getElementById(id);
@@ -68,7 +68,8 @@ export class ToolboxController {
         };
         // Camera callbacks
         link("btnPlaceCamera", "placeCamera");
-        link("btnSaveCamera", "saveCamera");
+        link("btnFlyToCamera", "flyToCamera");
+        link("btnScreenshotCamera", "screenshotCamera");
 
         link("btnDrawArea", "drawArea");
         link("btnFinishArea", "finishArea");

@@ -16,9 +16,12 @@ export class DeleteTool {
             if (!Cesium.defined(picked)) return;
 
             const entity = picked.id;
-            if (!entity || !entity.id) return;
+            if (!entity) return;
 
-            this.deleteEntity(entity.id);
+            // Determine the ID based on whether entity is an object or string
+            const entityId = typeof entity === 'string' ? entity : entity.id;
+
+            this.deleteEntity(entityId);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     }
 
@@ -32,14 +35,17 @@ export class DeleteTool {
         this.active = false;
     }
 
-    async deleteEntity(id) {
+    async deleteEntity(originalId) {
+        // Handle direction line IDs by extracting the base camera ID
+        const id = originalId.includes('-dir') ? originalId.replace('-dir', '') : originalId;
+
         if (!confirm(`Delete entity: ${id}?`)) return;
 
         console.log("DeleteTool: Starting deletion for id:", id);
 
         // Try AreaService delete first
         let areaDeleted = false;
-        try { 
+        try {
             const result = await AreaService.delete(id);
             console.log("DeleteTool: AreaService.delete returned:", result);
             areaDeleted = true;
@@ -49,28 +55,32 @@ export class DeleteTool {
 
         // Try StructureService delete
         let structureDeleted = false;
-        try { 
+        try {
             const result = await StructureService.delete(id);
             console.log("DeleteTool: StructureService.delete returned:", result);
             structureDeleted = true;
         } catch (e) {
             console.warn("DeleteTool: StructureService.delete failed or not a structure:", e);
         }
+
+        let cameraDeleted = false;
         try {
             await CameraService.delete(id);
+            cameraDeleted = true;
         } catch (e) {
-            // ignore if not found or not a camera  
+            // ignore if not found or not a camera
+            console.warn("DeleteTool: CameraService.delete failed or not a camera:", e);
         }
-        
-        this.viewer.entities.removeById(id);
 
-        if (!areaDeleted && !structureDeleted) {
-            console.error("DeleteTool: Entity not found in either service");
+        if (!areaDeleted && !structureDeleted && !cameraDeleted) {
+            console.error("DeleteTool: Entity not found in any service");
             return;
         }
 
-        // Remove from viewer
-        const removed = this.viewer.entities.removeById(id);
-        console.log("DeleteTool: Removed from viewer - success:", removed, "id:", id);
+        // Remove from viewer - remove both the main entity and direction line
+        this.viewer.entities.removeById(id);
+        this.viewer.entities.removeById(`${id}-dir`);
+
+        console.log("DeleteTool: Removed entities from viewer for id:", id);
     }
 }
