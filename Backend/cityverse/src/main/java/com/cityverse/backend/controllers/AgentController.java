@@ -17,15 +17,12 @@ public class AgentController {
     @GetMapping("/run-ai")
     public String runAi() {
         try {
-            // 1. Get project root directory (where Spring Boot is started)
             Path projectRoot = Paths.get(System.getProperty("user.dir"));
 
-            // 2. Build path to AI script dynamically
             Path pythonScriptPath = projectRoot
                     .resolve("AI_Functionality")
                     .resolve("ai.py");
 
-            // 3. Start Python process
             ProcessBuilder pb = new ProcessBuilder(
                     "python",
                     pythonScriptPath.toAbsolutePath().toString()
@@ -34,7 +31,6 @@ public class AgentController {
             pb.redirectErrorStream(true);
             Process p = pb.start();
 
-            // 4. Read output
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(p.getInputStream())
             );
