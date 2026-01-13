@@ -66,6 +66,8 @@ export class ToolboxController {
                 }
             };
         };
+        // Camera callbacks
+        link("btnAgentPlaatsen", "placeCamera");
 
         link("btnDrawArea", "drawArea");
         link("btnFinishArea", "finishArea");

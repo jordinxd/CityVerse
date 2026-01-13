@@ -1,37 +1,117 @@
+/* --- TOOLBOX CONTAINER --- */
 #toolbox {
     position: absolute;
     top: 20px;
     left: 20px;
     background: rgba(30, 30, 30, 0.8);
-    padding: 15px;
+    padding: 10px; /* Iets minder padding want de headers nemen ruimte in */
     border-radius: 10px;
     z-index: 999;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    width: 170px; /* Iets breder om de accordion headers ruimte te geven */
+    backdrop-filter: blur(5px);
+    gap: 5px;
 }
 
-#toolbox button {
-    width: 150px;
-    margin: 4px 0;
-    padding: 6px;
-    background: #303030;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 4px;
+/* --- ACCORDION HEADERS (De Categorie Knoppen) --- */
+button.accordion {
+    background-color: transparent;
+    color: #fff;
     cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.4s;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
 }
 
-#toolbox button:hover {
-    background: #505050;
+button.accordion:hover, button.accordion.active {
+    background-color: rgba(255, 255, 255, 0.1);
 }
-#toolbox button.active {
+
+/* Pijltje toevoegen */
+button.accordion::after {
+    content: '\002B'; /* Unicode plus teken (+) */
+    color: #777;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+}
+
+button.accordion.active::after {
+    content: "\2212"; /* Unicode min teken (-) */
+}
+
+/* --- HET UITKLAPBARE DEEL (Panel) --- */
+div.panel {
+    padding: 0;
+    display: none; /* Standaard verborgen */
+    background-color: transparent;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+div.panel.show {
+    display: block; /* Zichtbaar als 'show' class erop staat */
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* --- DE ACTIE KNOPPEN (Binnen het panel) --- */
+/* Dit is de stijl die we eerder hadden, nu toegepast op buttons in panels */
+div.panel button {
+    width: 100%; /* Vult de breedte van de panel */
+    margin: 3px 0;
+    padding: 8px;
+    background: #303030;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+div.panel button:hover {
+    background: #404040;
+    border-color: #777;
+    color: white;
+    transform: translateY(-1px);
+}
+
+div.panel button.active {
     background: #1e90ff;
     color: white;
+    border-color: #1e90ff;
 }
 
-#toolbox button.active {
-    background: #707070;
-    border-color: #aaa;
+/* Delete knop specifiek */
+div.panel button#btnDelete {
+    border-color: #8b0000;
+    background: rgba(139, 0, 0, 0.2);
+    color: #ffcccc;
+    margin-top: 8px; /* Beetje extra afstand */
 }
 
+div.panel button#btnDelete:hover {
+    background: #8b0000;
+    color: white;
+}
+div.panel button#btnDelete.active {
+    background: #ff0000;
+    color: white;
+}
 
 /* --- RECHTER SIDEBAR --- */
 #sidebar {
