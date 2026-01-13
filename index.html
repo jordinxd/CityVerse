@@ -8,23 +8,36 @@
 </head>
 
 <body style="margin: 0px; padding: 0px;">
+    
     <div id="toolbox">
-        <button id="btnPlaceCamera">Place Camera</button>
-        <button id="btnFlyToCamera">Fly to Camera</button>
-        <button id="btnScreenshotCamera">Screenshot</button>
-        <hr>
-        <button type="button" id="btnDrawArea">Draw Area</button>
-        <button type="button" id="btnFinishArea">Finish Area</button>
-        <button type="button" id="btnCancelArea">Cancel Area</button>
-        <hr>
-        <button type="button" id="btnPlaceBuilding">Place Building</button>
-        <button type="button" id="btnPlaceRoad">Place Road</button>
-        <button type="button" id="btnPlaceTree">Place Tree</button>
-        <hr>
-        <button type="button" id="btnMove">Move</button>
-        <button type="button" id="btnRotate">Rotate</button>
-        <button type="button" id="btnScale">Scale</button>
-        <hr>
+        <button class="accordion">Camera</button>
+        <div class="panel">
+            <button id="btnPlaceCamera">Place Camera</button>
+            <button id="btnFlyToCamera">Fly to Camera</button>
+            <button id="btnScreenshotCamera">Screenshot</button>
+        </div>
+
+        <button class="accordion">Gebieden</button>
+        <div class="panel">
+            <button type="button" id="btnDrawArea">Draw Area</button>
+            <button type="button" id="btnFinishArea">Finish Area</button>
+            <button type="button" id="btnCancelArea">Cancel Area</button>
+        </div>
+
+        <button class="accordion">Objecten</button>
+        <div class="panel">
+            <button type="button" id="btnPlaceBuilding">Place Building</button>
+            <button type="button" id="btnPlaceRoad">Place Road</button>
+            <button type="button" id="btnPlaceTree">Place Tree</button>
+        </div>
+
+        <button class="accordion">Bewerken</button>
+        <div class="panel">
+            <button type="button" id="btnMove">Move</button>
+            <button type="button" id="btnRotate">Rotate</button>
+            <button type="button" id="btnScale">Scale</button>
+            <button type="button" id="btnDelete">Verwijderen</button>
+        </div>
     </div>
     
     <div id="sidebar">
@@ -34,7 +47,6 @@
         </div>
 
         <div class="sidebar-content">
-            
             <div id="tab-gegevens" class="tab-section" style="display: none;">
                 <h2>Gebiedsdata</h2>
                 <p>Hier komen de statistieken van Spoordok.</p>
@@ -56,7 +68,6 @@
 
             <div id="tab-agents" class="tab-section">
                 <h2>Agents</h2>
-
                 <div class="agent-card">
                     <div class="agent-header">
                         <span>Agent #1</span>
@@ -76,7 +87,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <div class="sidebar-footer">
