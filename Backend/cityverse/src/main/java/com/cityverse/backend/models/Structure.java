@@ -7,9 +7,10 @@ public class Structure {
     private String id;
     private String type;
     private List<Double> position;
-    private double width;
-    private double depth;
-    private double height;
+    private Double rotation;
+    private Double width;
+    private Double depth;
+    private Double height;
     private Map<String, Object> style;
 
     public Structure() {}
@@ -24,13 +25,16 @@ public class Structure {
     public List<Double> getPosition() { return position; }
     public void setPosition(List<Double> position) { this.position = position; }
 
-    public double getWidth() { return width; }
+    public Double getRotation() { return rotation; }
+    public void setRotation(double rotation) { this.rotation = rotation; }
+
+    public Double getWidth() { return width; }
     public void setWidth(double width) { this.width = width; }
 
-    public double getDepth() { return depth; }
+    public Double getDepth() { return depth; }
     public void setDepth(double depth) { this.depth = depth; }
 
-    public double getHeight() { return height; }
+    public Double getHeight() { return height; }
     public void setHeight(double height) { this.height = height; }
 
     public Map<String, Object> getStyle() { return style; }

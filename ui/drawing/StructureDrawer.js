@@ -35,7 +35,7 @@ export class StructureDrawer {
     }
 
     deactivate() {
-        this.active = false
+        this.active = false;
     }
 
     async placeStructure(lon, lat) {
@@ -45,10 +45,11 @@ export class StructureDrawer {
             id: newId,
             type: this.currentType,
             position: [lon, lat],
+            rotation: 0,
             width: 6,
             depth: 6,
             height: 10,
-            style: { color: "#AA8833" }
+            style: { color: "#ff00b4" }
         };
 
         console.log("Creating structure:", structure);
@@ -67,6 +68,17 @@ export class StructureDrawer {
         this.viewer.entities.add({
             id: structure.id,
             position: Cesium.Cartesian3.fromDegrees(lon, lat, structure.height / 2),
+            orientation: Cesium.Transforms.headingPitchRollQuaternion(
+            Cesium.Cartesian3.fromDegrees(lon, lat),
+            new Cesium.HeadingPitchRoll(
+                Cesium.Math.toRadians(structure.rotation ?? 0),
+                0,
+                0
+                )
+            ),
+            properties: {
+            rotation: structure.rotation ?? 0
+            },
             box: {
                 dimensions: new Cesium.Cartesian3(
                     structure.width,
@@ -74,7 +86,7 @@ export class StructureDrawer {
                     structure.height
                 ),
                 material: Cesium.Color.fromCssColorString(
-                    structure.style.color ?? "#AA8833"
+                    structure.style.color ?? "#ff00f9"
                 )
             }
         });

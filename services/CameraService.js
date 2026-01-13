@@ -1,9 +1,9 @@
 import { Api, BACKEND_URL } from "./ApiService.js";
 
-const BASE = `${BACKEND_URL}/areas`;
+const BASE = `${BACKEND_URL}/camera`;
 
-export const AreaService = {
+export const CameraService = {
     getAll: () => Api.get(BASE),
-    create: (area) => Api.post(BASE, area),
+    create: (cam) => Api.post(BASE, cam),
     delete: (id) => Api.delete(`${BASE}/${id}`)
 };

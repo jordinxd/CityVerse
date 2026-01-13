@@ -1,5 +1,6 @@
 import { AreaService } from "../../services/AreaService.js";
 import { StructureService } from "../../services/StructureService.js";
+import { CameraService } from "../../services/CameraService.js";
 
 export class DeleteTool {
     constructor(viewer) {
@@ -34,23 +35,42 @@ export class DeleteTool {
     async deleteEntity(id) {
         if (!confirm(`Delete entity: ${id}?`)) return;
 
-        // Try both backends — call the exported `delete` method on each service.
-        // The previous code called `deleteArea` / `deleteStructure` which don't exist,
-        // so the requests were never sent (errors were swallowed). Use the correct names.
+        console.log("DeleteTool: Starting deletion for id:", id);
+
+        // Try AreaService delete first
+        let areaDeleted = false;
         try { 
-            await AreaService.delete(id); 
+            const result = await AreaService.delete(id);
+            console.log("DeleteTool: AreaService.delete returned:", result);
+            areaDeleted = true;
         } catch (e) {
-            // ignore if not found or not an area
+            console.warn("DeleteTool: AreaService.delete failed or not an area:", e);
         }
 
+        // Try StructureService delete
+        let structureDeleted = false;
         try { 
-            await StructureService.delete(id); 
+            const result = await StructureService.delete(id);
+            console.log("DeleteTool: StructureService.delete returned:", result);
+            structureDeleted = true;
         } catch (e) {
-            // ignore if not found or not a structure
+            console.warn("DeleteTool: StructureService.delete failed or not a structure:", e);
         }
-
+        try {
+            await CameraService.delete(id);
+        } catch (e) {
+            // ignore if not found or not a camera  
+        }
+        
         this.viewer.entities.removeById(id);
 
-        console.log("Deleted:", id);
+        if (!areaDeleted && !structureDeleted) {
+            console.error("DeleteTool: Entity not found in either service");
+            return;
+        }
+
+        // Remove from viewer
+        const removed = this.viewer.entities.removeById(id);
+        console.log("DeleteTool: Removed from viewer - success:", removed, "id:", id);
     }
 }

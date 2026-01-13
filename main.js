@@ -1,16 +1,11 @@
 import { createViewer } from "./core/CesiumSetup.js";
-import { fetchBackendMessage } from "./core/BackendCheck.js";
-import { latlonFromXY } from "./core/CoordinateUtils.js";
-import {
-    createBox,
-    moveEntity,
-    createPolygonFromXYs,
-    createModel
-} from "./core/EntityFactory.js";
+import { fetchBackendMessage } from "./Core/BackendCheck.js";
+import { latlonFromXY } from "./Core/CoordinateUtils.js";
+
+import { createBox, createModel } from "./Core/EntityFactory.js";
 
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
-import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
 import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { CameraDrawer } from "./ui/drawing/CameraDrawer.js";
@@ -33,18 +28,16 @@ async function startAnalysis(btnElement) {
     const iconSvg = btnElement.querySelector('svg');
 
     textSpan.innerText = "Bezig met analyse...";
-    
     iconSvg.innerHTML = '<path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"/>';
     iconSvg.classList.add('spinning'); 
     btnElement.disabled = true; 
 
     try {
-        const response = await fetch('http://localhost:3000/api/run-ai');
-        const data = await response.json(); 
-        
+        const response = await fetch('http://localhost:8080/api/run-ai');
+        const data = await response.json();
+
         iconSvg.classList.remove('spinning');
         btnElement.disabled = false;
-
         textSpan.innerText = "Bekijk analyse";
         iconSvg.innerHTML = '<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>';
 
@@ -89,8 +82,7 @@ window.onload = () => {
 
     // Example entities
     const testLabelPos = latlonFromXY(220, 70);
-
-    const testLabel = viewer.entities.add({
+    viewer.entities.add({
         id: "TestLabel",
         position: Cesium.Cartesian3.fromDegrees(testLabelPos.lat, testLabelPos.lon, 50),
         label: {
@@ -102,12 +94,10 @@ window.onload = () => {
         }
     });
 
-    viewer.flyTo(testLabel);
-
-    // Example boxes
     createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
+    createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
 
-    // Create tool instances
+    // Tools
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
@@ -132,11 +122,41 @@ window.onload = () => {
 
     const toolbox = new ToolboxController();
 
-    // Connect UI actions to Cesium actions
+    // Camera
+    toolbox.on("placeCamera", () => cameraDrawer.startPlacement());
+    toolbox.on("saveCamera", () => cameraDrawer.saveCurrentCamera());
+
+    // Area drawing with save
     toolbox.on("drawArea", () => areaDrawer.start());
-    toolbox.on("finishArea", () => areaDrawer.finish(prompt("Name:")));
+    toolbox.on("finishArea", async () => {
+        const name = prompt("Name:");
+        if (!name) return;
+
+        let polygon = areaDrawer.finish(name);
+        if (!Array.isArray(polygon)) polygon = [];
+
+        polygon = polygon.map(cart => {
+            const c = Cesium.Cartographic.fromCartesian(cart);
+            return [Cesium.Math.toDegrees(c.latitude), Cesium.Math.toDegrees(c.longitude)];
+        });
+
+        if (polygon.length > 0) {
+            try {
+                const response = await fetch("http://localhost:8080/areas", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: name, polygon: polygon })
+                });
+                const saved = await response.json();
+                console.log("Area saved to backend:", saved);
+            } catch (err) {
+                console.error("Failed to save area:", err);
+            }
+        }
+    });
     toolbox.on("cancelArea", () => areaDrawer.cancel());
 
+    // Structure placement
     toolbox.on("placeBuilding", () => structureDrawer.activate("building"));
     toolbox.on("placeRoad", () => structureDrawer.activate("road"));
     toolbox.on("placeTree", () => structureDrawer.activate("tree"));
@@ -163,9 +183,6 @@ window.onload = () => {
     // Models
     createModel(viewer, "Cesium_Man.glb", latlonFromXY(220, 70), 0);
     createModel(viewer, "strange_building.glb", latlonFromXY(240, 70), 0);
-
-    // Add a second building (restored)
-    createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
 
     // Backend test
     fetchBackendMessage(viewer);

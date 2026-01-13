@@ -93,12 +93,48 @@ export class AreaDrawer {
 
 
         // Save to backend
-        await AreaService.create(area);
+        const created = await AreaService.create(area);
+        console.log("Area saved:", created);
 
-        console.log("Area saved:", area);
+        // Add a permanent visual for the saved area so it remains visible
+        // immediately (the dynamic drawing entity clears when positions reset).
+        try {
+            const style = area.style ?? {};
+            const fillColor = Cesium.Color
+            .fromCssColorString(style.fillColor ?? "#1E90FF")
+            .withAlpha(style.fillOpacity ?? 0.25);
+
+        const outlineColor = Cesium.Color
+            .fromCssColorString(style.outlineColor ?? "#0044AA");
+
+        const heightOffset = style.heightOffset ?? 0;
+
+        this.viewer.entities.add({
+            id: area.id,
+            name: area.name,
+            polygon: {
+                hierarchy: area.polygon.map(p =>
+                    Cesium.Cartesian3.fromDegrees(
+                        p[0],
+                        p[1],
+                        heightOffset
+                    )
+                ),
+
+                perPositionHeight: true,
+                material: fillColor,
+                outline: true,
+                outlineColor,
+                outlineWidth: style.outlineWidth ?? 2
+            }
+        });
+        } catch (e) {
+            console.error("Failed to spawn visual for area:", e);
+        }
 
         // Reset drawing state
         this.positions = [];
+        this.isDrawing = false;
     }
 
     cancel() {

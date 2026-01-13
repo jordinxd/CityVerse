@@ -30,12 +30,14 @@ public class AreaController {
 
     @PostMapping
     public Area create(@RequestBody Area area) {
-        service.add(area);
-        return area;
+        Area saved = service.add(area);
+        return saved;
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
+        System.out.println("AreaController: DELETE /areas/" + id);
         service.delete(id);
+        System.out.println("AreaController: Deleted area with id: " + id);
     }
 }
