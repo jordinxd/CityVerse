@@ -11,6 +11,14 @@ export async function loadStructures(viewer) {
                 s.position[1],
                 s.height / 2
             ),
+            orientation: Cesium.Transforms.headingPitchRollQuaternion(
+                Cesium.Cartesian3.fromDegrees(s.position[0], s.position[1]),
+                new Cesium.HeadingPitchRoll(
+                    Cesium.Math.toRadians(s.rotation ?? 0),
+                    0,
+                    0
+                )
+            ),
             properties: new Cesium.PropertyBag({
                 rotation: s.rotation ?? 0
             }),
@@ -21,8 +29,7 @@ export async function loadStructures(viewer) {
                     s.height
                 ),
                 material: Cesium.Color.fromCssColorString(s.style.color)
-            },
-            rotation: s.rotation
+            }
         });
     });
 }
