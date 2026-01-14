@@ -25,6 +25,7 @@ import { SidebarController } from "./ui/SidebarController.js";
 
 async function startAnalysis(btnElement) {
     const card = btnElement.closest('.agent-card');
+    const polygonId = card.dataset.polygonId; // <-- Grab polygon ID here
     const actionDiv = btnElement.closest('.agent-action');
     const textSpan = actionDiv.querySelector('span');
     const iconSvg = btnElement.querySelector('svg');
@@ -35,7 +36,8 @@ async function startAnalysis(btnElement) {
     btnElement.disabled = true;
 
     try {
-        const response = await fetch('http://localhost:3000/api/run-ai');
+        // Pass polygonId to backend
+        const response = await fetch(`http://localhost:3000/api/run-ai?polygonId=${polygonId}`);
         const data = await response.json();
 
         iconSvg.classList.remove('spinning');
