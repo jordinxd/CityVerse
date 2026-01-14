@@ -1,6 +1,6 @@
 import { Api, BACKEND_URL } from "./ApiService.js";
 
-const BASE = `${BACKEND_URL}/camera`;
+const BASE = `${BACKEND_URL}/cameras`;
 
 export const CameraService = {
     getAll: () => Api.get(BASE),
