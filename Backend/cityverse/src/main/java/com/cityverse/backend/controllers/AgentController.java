@@ -36,24 +36,31 @@ public class AgentController {
             // Run the Python AI script
             jsonOutput = runPythonAiScript();
 
-            // Save the result to the database
-            LlmAnalysisEntity analysis = new LlmAnalysisEntity();
-            analysis.setPolygonId(polygonId);
-            analysis.setAnalysis(jsonOutput);
-            llmAnalysisRepository.save(analysis);
+            // Parse the output minimally to check if it's an error
+            boolean isError = jsonOutput.contains("\"quality_of_life_score\": -1")
+                    && jsonOutput.contains("Systeem Error");
+
+            // Only save if it's not an error
+            if (!isError) {
+                LlmAnalysisEntity analysis = new LlmAnalysisEntity();
+                analysis.setPolygonId(polygonId);
+                analysis.setAnalysis(jsonOutput);
+                llmAnalysisRepository.save(analysis);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
             jsonOutput = """
-            {
-                "quality_of_life_score": 0,
-                "justification": "Server error: AI script failed."
-            }
-            """;
+        {
+            "quality_of_life_score": 0,
+            "justification": "Server error: AI script failed."
+        }
+        """;
         }
 
         return jsonOutput;
     }
+
 
     private String runPythonAiScript() throws Exception {
         Path projectRoot = Paths.get(System.getProperty("user.dir"));
