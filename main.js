@@ -4,20 +4,24 @@ import { latlonFromXY } from "./Core/CoordinateUtils.js";
 
 import { createBox, createModel } from "./Core/EntityFactory.js";
 
+// UI Imports
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
 import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
-import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { CameraDrawer } from "./ui/drawing/CameraDrawer.js";
-import { CameraService } from "./services/CameraService.js";
 
+// Data loading imports
 import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { loadStructures } from "./ui/drawing/StructureLoader.js";
 import { loadCameras } from "./ui/drawing/CameraLoader.js";
+
+// Editor imports
 import { EditorSelection } from "./ui/editor/EditorSelection.js";
+import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
+import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
-import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
+import { SidebarController } from "./ui/SidebarController.js";
 
 async function startAnalysis(btnElement) {
     const card = btnElement.closest('.agent-card');
@@ -72,34 +76,39 @@ async function startAnalysis(btnElement) {
 
 window.startAnalysis = startAnalysis;
 
-window.onload = () => {
-    const viewer = createViewer();
-    const cameraDrawer = new CameraDrawer(viewer);
 
-    // Example entities
-    const testLabelPos = latlonFromXY(220, 70);
-    viewer.entities.add({
-        id: "TestLabel",
-        position: Cesium.Cartesian3.fromDegrees(testLabelPos.lat, testLabelPos.lon, 50),
-        label: {
-            text: "TEST LABEL",
-            font: "30px sans-serif",
-            fillColor: Cesium.Color.YELLOW,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 3
+// --- MAIN INITIALISATIE ---
+window.onload = () => {
+
+    const viewer = createViewer();
+
+    //Sidebar logics
+    const sidebar = new SidebarController({
+        onPlaceAgent: () => {
+            areaDrawer.cancel();
+            structureDrawer.deactivate();
+            toolManager.deactivateAll();
+            cameraDrawer.startPlacement();
         }
     });
 
-    createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
-    createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
-
-    // Tools
+    // Create tool instances
+    // Pass the selection to cameraDrawer after both are initialized to avoid circular dependency
+    const cameraDrawer = new CameraDrawer(viewer);
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
-    const selection = new EditorSelection(viewer);
-    const moveTool = new MoveTool(viewer, selection);
-    const rotationTool = new RotationTool(viewer, selection);
+    const moveTool = new MoveTool(viewer, null); // Initialize without selection first
+    const rotationTool = new RotationTool(viewer, null); // Initialize without selection first
+    const selection = new EditorSelection(viewer, moveTool, rotationTool);
+    cameraDrawer.editorSelection = selection;
+    moveTool.selection = selection; // Now set the reference
+    rotationTool.selection = selection; // Now set the reference
+
+    // createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
+    // createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
+
+    // Create tool instances
     const toolManager = new EditorToolManager(viewer, selection, {
         move: moveTool,
         rotate: rotationTool
@@ -120,8 +129,10 @@ window.onload = () => {
     // Camera
     toolbox.on("placeCamera", () => cameraDrawer.startPlacement());
     toolbox.on("saveCamera", () => cameraDrawer.saveCurrentCamera());
+    toolbox.on("flyToCamera", () => cameraDrawer.flyToCamera());
+    toolbox.on("screenshotCamera", () => cameraDrawer.takeScreenshot());
 
-    // Area drawing with save
+    // Connect UI actions to Cesium actions
     toolbox.on("drawArea", () => areaDrawer.start());
     toolbox.on("finishArea", async () => {
         const name = prompt("Name:");
@@ -156,12 +167,12 @@ window.onload = () => {
     toolbox.on("placeRoad", () => structureDrawer.activate("road"));
     toolbox.on("placeTree", () => structureDrawer.activate("tree"));
 
-    // Editor tools
     toolbox.on("move", () => toolManager.activateTool("move"));
     toolbox.on("rotate", () => toolManager.activateTool("rotate"));
     toolbox.on("scale", () => toolManager.activateTool("scale"));
-
-    toolbox.on("deactivate", () => {
+    
+    // Deactivate all tools when switching away via Toolbox
+    toolbox.on("deactivate", (action) => {
         areaDrawer.cancel();
         structureDrawer.deactivate();
         deleteTool.deactivate();
@@ -175,10 +186,51 @@ window.onload = () => {
         deleteTool.activate();
     });
 
+
     // Models
     createModel(viewer, "Cesium_Man.glb", latlonFromXY(220, 70), 0);
     createModel(viewer, "strange_building.glb", latlonFromXY(240, 70), 0);
 
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(5.7804619, 53.196691, 500),
+        duration: 2
+    });
+
     // Backend test
-    fetchBackendMessage(viewer);
+    // fetchBackendMessage(viewer);
+
+
+    // --- SIDEBAR FUNCTIONALITEIT ---
+
+    // 1. Plaats Agent knop
+    const btnAgentPlaatsen = document.getElementById("btnAgentPlaatsen");
+    if (btnAgentPlaatsen) {
+        btnAgentPlaatsen.onclick = () => {
+            console.log("Plaats Agent knop ingedrukt");
+            areaDrawer.cancel();
+            structureDrawer.deactivate();
+            deleteTool.deactivate();
+            toolManager.deactivateAll();
+            cameraDrawer.startPlacement();
+        };
+    }
+
+    // --- ACCORDION FUNCTIONALITEIT ---
+    const acc = document.getElementsByClassName("accordion");
+    
+    for (let i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            // 1. Toggle de 'active' class voor de styling (plus/min teken)
+            this.classList.toggle("active");
+
+            // 2. Toggle het paneel eronder
+            const panel = this.nextElementSibling;
+            if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+        });
+    }
+
 };

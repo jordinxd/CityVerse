@@ -121,7 +121,7 @@ CREATE TABLE `polygon` (
   `agent_id` int(11) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `coordinates` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --

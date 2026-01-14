@@ -11,14 +11,14 @@ export async function fetchBackendMessage(viewer) {
             id: "BackendLabel",
             position: Cesium.Cartesian3.fromDegrees(pos.lat, pos.lon, 80),
             label: {
-                text: data.message,
-                font: "30px sans-serif",
-                fillColor: Cesium.Color.YELLOW,
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 3,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                showBackground: true,
-                backgroundColor: Cesium.Color.BLACK.withAlpha(0.4),
+                // text: data.message,
+                // font: "30px sans-serif",
+                // fillColor: Cesium.Color.YELLOW,
+                // outlineColor: Cesium.Color.BLACK,
+                // outlineWidth: 3,
+                // style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                showBackground: false,
+                // backgroundColor: Cesium.Color.BLACK.withAlpha(0.4),
             }
         });
 

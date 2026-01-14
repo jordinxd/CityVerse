@@ -42,33 +42,38 @@ export class ToolboxController {
         // Certain actions are immediate commands and should not toggle or
         // deactivate the currently active tool. For example, "finishArea"
         // finalizes a drawing and must run while the draw tool is still active.
-        const nonToggleActions = new Set(["finishArea", "cancelArea, saveCamera"]);
+        const nonToggleActions = new Set(["finishArea", "cancelArea", "flyToCamera", "screenshotCamera", "moveCamera", "rotateCamera"]);
 
         const link = (id, action) => {
-            const btn = document.getElementById(id);
+    const btn = document.getElementById(id);
 
-            btn.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+    // Controleer of de knop bestaat
+    if (!btn) {
+        console.warn(`ToolboxController: Knop met id "${id}" niet gevonden in de DOM.`);
+        return; 
+    }
 
-                // If this is a non-toggle action, just invoke the callback
-                // without changing the active button or calling deactivate.
-                if (nonToggleActions.has(action)) {
-                    if (this.callbacks[action]) this.callbacks[action]();
-                    return;
-                }
+    btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-                const activated = this.setActiveButton(btn, action);
-                if (!activated) return;
+        if (nonToggleActions.has(action)) {
+            if (this.callbacks[action]) this.callbacks[action]();
+            return;
+        }
 
-                if (this.callbacks[action]) {
-                    this.callbacks[action]();
-                }
-            };
-        };
+        const activated = this.setActiveButton(btn, action);
+        if (!activated) return;
+
+        if (this.callbacks[action]) {
+            this.callbacks[action]();
+        }
+    };
+};
         // Camera callbacks
         link("btnPlaceCamera", "placeCamera");
-        link("btnSaveCamera", "saveCamera");
+        link("btnFlyToCamera", "flyToCamera");
+        link("btnScreenshotCamera", "screenshotCamera");
 
         link("btnDrawArea", "drawArea");
         link("btnFinishArea", "finishArea");
