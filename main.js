@@ -4,21 +4,76 @@ import { latlonFromXY } from "./Core/CoordinateUtils.js";
 
 import { createBox, createModel } from "./Core/EntityFactory.js";
 
+// UI Imports
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
 import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
-import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { CameraDrawer } from "./ui/drawing/CameraDrawer.js";
-// import { CameraService } from "./services/CameraService.js";
 
+// Data loading imports
 import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { loadStructures } from "./ui/drawing/StructureLoader.js";
 import { loadCameras } from "./ui/drawing/CameraLoader.js";
+
+// Editor imports
 import { EditorSelection } from "./ui/editor/EditorSelection.js";
+import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
+import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
-import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
 import { SidebarController } from "./ui/SidebarController.js";
+
+async function startAnalysis(btnElement) {
+    const card = btnElement.closest('.agent-card');
+    const actionDiv = btnElement.closest('.agent-action');
+    const textSpan = actionDiv.querySelector('span');
+    const iconSvg = btnElement.querySelector('svg');
+
+    textSpan.innerText = "Bezig met analyse...";
+    iconSvg.innerHTML = '<path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"/>';
+    iconSvg.classList.add('spinning');
+    btnElement.disabled = true;
+
+    try {
+        const response = await fetch('http://localhost:3000/api/run-ai');
+        const data = await response.json();
+
+        iconSvg.classList.remove('spinning');
+        btnElement.disabled = false;
+        textSpan.innerText = "Bekijk analyse";
+        iconSvg.innerHTML = '<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>';
+
+        let detailsDiv = card.querySelector('.analysis-details');
+        if (!detailsDiv) {
+            detailsDiv = document.createElement('div');
+            detailsDiv.className = 'analysis-details';
+            card.appendChild(detailsDiv);
+        }
+
+        detailsDiv.innerHTML = `
+            <div><span class="score-badge">Score: ${data.quality_of_life_score}/100</span></div>
+            <div><em>"${data.justification}"</em></div>
+        `;
+
+        btnElement.onclick = (e) => {
+            e.stopPropagation();
+            detailsDiv.classList.toggle('open');
+            btnElement.style.transform = detailsDiv.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+        };
+
+        detailsDiv.classList.add('open');
+        btnElement.style.transform = 'rotate(180deg)';
+
+    } catch (error) {
+        console.error(error);
+        textSpan.innerText = "Fout bij analyse";
+        iconSvg.classList.remove('spinning');
+        btnElement.disabled = false;
+    }
+}
+
+window.startAnalysis = startAnalysis;
+
 
 // --- MAIN INITIALISATIE ---
 window.onload = () => {
@@ -36,32 +91,20 @@ window.onload = () => {
     });
 
     // Create tool instances
-    const cameraDrawer = new CameraDrawer(viewer);
-    const selection = new EditorSelection(viewer, cameraDrawer);
     // Pass the selection to cameraDrawer after both are initialized to avoid circular dependency
-    cameraDrawer.editorSelection = selection;
+    const cameraDrawer = new CameraDrawer(viewer);
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
-    const moveTool = new MoveTool(viewer, selection);
-    const rotationTool = new RotationTool(viewer, selection);
+    const moveTool = new MoveTool(viewer, null); // Initialize without selection first
+    const rotationTool = new RotationTool(viewer, null); // Initialize without selection first
+    const selection = new EditorSelection(viewer, moveTool, rotationTool);
+    cameraDrawer.editorSelection = selection;
+    moveTool.selection = selection; // Now set the reference
+    rotationTool.selection = selection; // Now set the reference
 
-    // Example entities
-    const testLabelPos = latlonFromXY(220, 70);
-    viewer.entities.add({
-        id: "TestLabel",
-        position: Cesium.Cartesian3.fromDegrees(testLabelPos.lat, testLabelPos.lon, 50),
-        label: {
-            // text: "TEST LABEL",
-            // font: "30px sans-serif",
-            // fillColor: Cesium.Color.YELLOW,
-            // outlineColor: Cesium.Color.BLACK,
-            // outlineWidth: 3
-        }
-    });
-
-    createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
-    createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
+    // createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
+    // createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
 
     // Create tool instances
     const toolManager = new EditorToolManager(viewer, selection, {
@@ -146,8 +189,13 @@ window.onload = () => {
     createModel(viewer, "Cesium_Man.glb", latlonFromXY(220, 70), 0);
     createModel(viewer, "strange_building.glb", latlonFromXY(240, 70), 0);
 
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(5.7804619, 53.196691, 500),
+        duration: 2
+    });
+
     // Backend test
-    fetchBackendMessage(viewer);
+    // fetchBackendMessage(viewer);
 
 
     // --- SIDEBAR FUNCTIONALITEIT ---

@@ -26,9 +26,9 @@ export async function loadCameras(viewer, cameraDrawer) {
                 id,
                 position: cartesianPos,
                 orientation: cameraOrientation,
-                properties: {
+                properties: new Cesium.PropertyBag({
                     rotation: rotation || 0 // Store rotation from camera data
-                },
+                }),
                 model: {
                     uri: "Cesium_Man.glb",  // Using the Cesium Man model from the project root
                     scale: 0.3,  // Reduced scale for better visibility

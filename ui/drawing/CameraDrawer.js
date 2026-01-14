@@ -128,6 +128,9 @@ export class CameraDrawer {
                 id: cameraId,
                 position: cameraPosition,
                 orientation: cameraOrientation,
+                properties: new Cesium.PropertyBag({
+                    rotation: headingDegrees
+                }),
                 model: {
                     uri: "Cesium_Man.glb",  // Using the Cesium Man model from the project root
                     scale: 0.3,  // Reduced scale for better visibility
