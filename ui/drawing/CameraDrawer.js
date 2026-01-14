@@ -11,19 +11,6 @@ export class CameraDrawer {
 
 
         this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-
-        // Click handler for selecting cameras
-        this.handler.setInputAction((click) => {
-            const pickedObject = this.viewer.scene.pick(click.position);
-            if (pickedObject && pickedObject.id) {
-                // Determine the ID based on whether pickedObject.id is an object or string
-                const entityId = typeof pickedObject.id === 'string' ? pickedObject.id : pickedObject.id.id;
-
-                if (this.isCameraEntityById(entityId)) {
-                    this.selectCamera(entityId);
-                }
-            }
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     }
 
     isCameraEntityById(cameraId) {
@@ -33,6 +20,15 @@ export class CameraDrawer {
             return true;
         }
         return false;
+    }
+
+    // Method to handle selection from EditorSelection
+    handleSelection(entityId) {
+        if (this.isCameraEntityById(entityId)) {
+            this.selectCamera(entityId);
+            return true; // Indicate that this is a camera and was handled
+        }
+        return false; // Not a camera entity
     }
 
     selectCamera(cameraId) {
@@ -47,9 +43,9 @@ export class CameraDrawer {
             if (entity.model) {
                 // We can add a label or change the model appearance when selected
                 entity.label = {
-                    text: 'CAMERA',
+                    text: 'Agent',
                     font: '14pt sans-serif',
-                    fillColor: Cesium.Color.YELLOW,
+                    fillColor: Cesium.Color.WHITE,
                     outlineColor: Cesium.Color.BLACK,
                     outlineWidth: 2,
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
@@ -60,15 +56,10 @@ export class CameraDrawer {
             }
         }
 
+        // Notify editor selection about the camera selection
         if (this.editorSelection) {
-            const cesiumEntity = this.viewer.entities.getById(cameraId);
-            if (cesiumEntity) {
-                // Only update editor selection if it's actually a camera entity (has model)
-                if (cesiumEntity.model) {
-                    this.editorSelection.selected = cesiumEntity;
-                    this.editorSelection.emitChange();
-                }
-            }
+            this.editorSelection.selected = entity;
+            this.editorSelection.emitChange();
         }
 
         console.log("[CameraDrawer] Selected camera:", cameraId);
@@ -84,6 +75,7 @@ export class CameraDrawer {
             this.selectedCameraId = null;
         }
 
+        // Also clear the editor selection
         if (this.editorSelection) this.editorSelection.clear();
     }
 
@@ -91,6 +83,9 @@ export class CameraDrawer {
         if (this.placementActive) return;
         this.placementActive = true;
         console.log("[CameraDrawer] Placement mode enabled");
+
+        // Remove any existing click handler to avoid conflicts during placement
+        this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
         this.handler.setInputAction(async (click) => {
             if (!this.placementActive) return;
@@ -102,13 +97,9 @@ export class CameraDrawer {
             }
 
             const cartographic = Cesium.Cartographic.fromCartesian(pickPosition);
-            let height = cartographic.height || 2;
-            height = Math.max(height, 2) + 2;
 
-            const heightInput = prompt("Camera height (meters):", height.toFixed(1));
-            if (heightInput !== null) height = parseFloat(heightInput);
-
-            const headingDegrees = parseFloat(prompt("Heading (degrees, 0-360):", "0"));
+            const height = Math.max(cartographic.height || 2, 2) + 0.5;
+            const headingDegrees = 0;
 
             const cameraPosition = Cesium.Cartesian3.fromDegrees(
                 Cesium.Math.toDegrees(cartographic.longitude),
@@ -156,6 +147,9 @@ export class CameraDrawer {
 
             await CameraService.create(cameraData);
             this.placementActive = false;
+
+            // Re-enable camera selection after placement is done
+            // The EditorSelection will handle selection now
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     }
 
@@ -208,8 +202,7 @@ export class CameraDrawer {
     }
 
     // Fly-to camera using stored viewer state
-    async flyToCamera(cameraId = null) {
-        // Default to currently selected camera
+    flyToCamera(cameraId = null) {
         if (!cameraId) cameraId = this.selectedCameraId;
 
         if (!cameraId) {
@@ -217,43 +210,35 @@ export class CameraDrawer {
             return;
         }
 
-        let cameraData = this.cameraDataList.find(c => c.id === cameraId);
-
-        // If camera data not found locally, try to get it from the service
+        const cameraData = this.cameraDataList.find(c => c.id === cameraId);
         if (!cameraData) {
-            try {
-                cameraData = await CameraService.getById(cameraId);
-                if (!cameraData) {
-                    console.warn("[CameraDrawer] Camera data not found in service:", cameraId);
-                    return;
-                }
-            } catch (error) {
-                console.error("[CameraDrawer] Error retrieving camera data:", error);
-                return;
-            }
-        }
-
-        if (!cameraData || !cameraData.position) {
-            console.warn("[CameraDrawer] Camera data or position not available:", cameraId);
+            console.warn("[CameraDrawer] Camera data not found:", cameraId);
             return;
         }
 
-        // Convert position array [lon, lat, height] to Cartesian3
+        const [lon, lat, height] = cameraData.position;
+
         const destination = Cesium.Cartesian3.fromDegrees(
-            cameraData.position[0], // longitude
-            cameraData.position[1], // latitude
-            cameraData.position[2]  // height
+            lon,
+            lat,
+            height
         );
 
-        // Use stored viewer state - fly to the exact position of the camera model
-        this.viewer.camera.flyTo({
-            destination: destination,
-            duration: 2
-        });
+    const headingRadians = Cesium.Math.toRadians(cameraData.rotation + 90); // Adjust heading to Cesium's coordinate system
+    const pitchRadians = Cesium.Math.toRadians(0); // Slight downward pitch
+    const rollRadians = 0; // No roll
 
+    this.viewer.camera.flyTo({
+        destination,
+        orientation: {
+            heading: headingRadians,
+            pitch: pitchRadians,
+            roll: rollRadians
+        },
+        duration: 2
+    });
         console.log("[CameraDrawer] Flying to camera:", cameraId);
     }
-
 
     // Screenshot functionality
     takeScreenshot() {

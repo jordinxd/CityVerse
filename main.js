@@ -100,7 +100,7 @@ window.onload = () => {
     const deleteTool = new DeleteTool(viewer);
     const moveTool = new MoveTool(viewer, null); // Initialize without selection first
     const rotationTool = new RotationTool(viewer, null); // Initialize without selection first
-    const selection = new EditorSelection(viewer, moveTool, rotationTool);
+    const selection = new EditorSelection(viewer, moveTool, rotationTool, cameraDrawer);
     cameraDrawer.editorSelection = selection;
     moveTool.selection = selection; // Now set the reference
     rotationTool.selection = selection; // Now set the reference

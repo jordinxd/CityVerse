@@ -44,6 +44,14 @@ export class EditorSelection {
 
         if (picked && picked.id) {
             // Check if it's a valid selectable entity (has properties)
+            const entityId = typeof picked.id === 'string' ? picked.id : picked.id.id;
+
+            // Check if this is a camera entity first
+            if (this.cameraDrawer && this.cameraDrawer.handleSelection(entityId)) {
+                // Camera was handled by CameraDrawer, don't change EditorSelection
+                return;
+            }
+
             if (picked.id.properties) {
                 newSelection = picked.id;
                 console.log("[Selection] Picked entity:", picked.id.id);
