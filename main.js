@@ -18,64 +18,22 @@ import { EditorSelection } from "./ui/editor/EditorSelection.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
 import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
-
-
-// --- ANALYSE FUNCTIE (Globaal) ---
-async function startAnalysis(btnElement) {
-    const card = btnElement.closest('.agent-card');
-    const actionDiv = btnElement.closest('.agent-action');
-    const textSpan = actionDiv.querySelector('span');
-    const iconSvg = btnElement.querySelector('svg');
-
-    textSpan.innerText = "Bezig met analyse...";
-    iconSvg.innerHTML = '<path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"/>';
-    iconSvg.classList.add('spinning'); 
-    btnElement.disabled = true; 
-
-    try {
-        const response = await fetch('http://localhost:3000/api/run-ai');
-        const data = await response.json();
-
-        iconSvg.classList.remove('spinning');
-        btnElement.disabled = false;
-        textSpan.innerText = "Bekijk analyse";
-        iconSvg.innerHTML = '<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>';
-
-        let detailsDiv = card.querySelector('.analysis-details');
-        if (!detailsDiv) {
-            detailsDiv = document.createElement('div');
-            detailsDiv.className = 'analysis-details';
-            card.appendChild(detailsDiv);
-        }
-
-        detailsDiv.innerHTML = `
-            <div><span class="score-badge">Score: ${data.quality_of_life_score}/100</span></div>
-            <div><em>"${data.justification}"</em></div>
-        `;
-
-        btnElement.onclick = (e) => {
-            e.stopPropagation(); 
-            detailsDiv.classList.toggle('open');
-            btnElement.style.transform = detailsDiv.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
-        };
-
-        detailsDiv.classList.add('open');
-        btnElement.style.transform = 'rotate(180deg)';
-
-    } catch (error) {
-        console.error(error);
-        textSpan.innerText = "Fout bij analyse";
-        iconSvg.classList.remove('spinning');
-        btnElement.disabled = false; 
-    }
-}
-window.startAnalysis = startAnalysis;
-
+import { SidebarController } from "./ui/SidebarController.js";
 
 // --- MAIN INITIALISATIE ---
 window.onload = () => {
 
     const viewer = createViewer();
+
+    //Sidebar logics
+    const sidebar = new SidebarController({
+        onPlaceAgent: () => {
+            areaDrawer.cancel();
+            structureDrawer.deactivate();
+            toolManager.deactivateAll();
+            cameraDrawer.startPlacement();
+        }
+    });
 
     // Create tool instances
     const cameraDrawer = new CameraDrawer(viewer);
@@ -207,35 +165,6 @@ window.onload = () => {
         };
     }
 
-    // 2. TAB FUNCTIONALITEIT (NIEUW TOEGEVOEGD)
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabSections = document.querySelectorAll('.tab-section');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // A. Verwijder 'active' class van alle knoppen
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            // B. Voeg 'active' class toe aan de aangeklikte knop
-            button.classList.add('active');
-
-            // C. Verberg alle secties
-            tabSections.forEach(section => section.style.display = 'none');
-
-            // D. Toon de juiste sectie op basis van data-tab attribuut
-            const targetId = button.getAttribute('data-tab');
-            const targetSection = document.getElementById(targetId);
-            if (targetSection) {
-                targetSection.style.display = 'block';
-            }
-            
-            // Optioneel: Verberg de "Plaats Agent" knop als je in de Gegevens tab zit
-            if (targetId === 'tab-gegevens') {
-                if(btnAgentPlaatsen) btnAgentPlaatsen.style.display = 'none';
-            } else {
-                if(btnAgentPlaatsen) btnAgentPlaatsen.style.display = 'block';
-            }
-        });
-    });
     // --- ACCORDION FUNCTIONALITEIT ---
     const acc = document.getElementsByClassName("accordion");
     
@@ -254,8 +183,4 @@ window.onload = () => {
         });
     }
 
-    // Optioneel: Open de eerste categorie standaard bij laden
-    if(acc.length > 0) {
-        acc[0].click();
-    }
 };
