@@ -84,8 +84,11 @@ window.onload = () => {
     const areaDrawer = new AreaDrawer(viewer);
     const structureDrawer = new StructureDrawer(viewer);
     const deleteTool = new DeleteTool(viewer);
-    const moveTool = new MoveTool(viewer, selection);
-    const rotationTool = new RotationTool(viewer, selection);
+    const moveTool = new MoveTool(viewer, null); // Initialize without selection first
+    const rotationTool = new RotationTool(viewer, null); // Initialize without selection first
+    const selection = new EditorSelection(viewer, moveTool, rotationTool);
+    moveTool.selection = selection; // Now set the reference
+    rotationTool.selection = selection; // Now set the reference
 
     // createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
     // createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
