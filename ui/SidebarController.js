@@ -47,6 +47,8 @@ export class SidebarController {
 
     async runAnalysis(btnElement) {
         const card = btnElement.closest('.agent-card');
+        const polygonId = card.dataset.polygonId;
+
         const actionDiv = btnElement.closest('.agent-action');
         const textSpan = actionDiv.querySelector('span');
         const iconSvg = btnElement.querySelector('svg');
@@ -56,7 +58,14 @@ export class SidebarController {
         btnElement.disabled = true;
 
         try {
-            const response = await fetch('http://localhost:3000/api/run-ai');
+            if (!polygonId) {
+                throw new Error("No polygonId found on agent card");
+            }
+
+            const response = await fetch(
+                `http://localhost:3000/api/run-ai?polygonId=${polygonId}`
+            );
+
             const data = await response.json();
 
             this._renderAnalysisResults(card, btnElement, textSpan, iconSvg, data);
@@ -68,6 +77,7 @@ export class SidebarController {
             btnElement.disabled = false;
         }
     }
+
 
     _renderAnalysisResults(card, btn, span, svg, data) {
         svg.classList.remove('spinning');
