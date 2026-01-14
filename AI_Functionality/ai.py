@@ -15,7 +15,7 @@ def analyze_image(image_path):
     if not Path(image_path).exists():
         # Return een JSON object met de foutmelding, zodat de UI dit snapt
         return json.dumps({
-            "quality_of_life_score": 0,
+            "quality_of_life_score": -1,
             "justification": f"Error: Afbeelding niet gevonden op pad: {image_path}"
         })
 
