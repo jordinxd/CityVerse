@@ -49,7 +49,7 @@ def analyze_image(image_path):
     except Exception as e:
         # 4. Vang crashes af (bijv. als Ollama niet draait)
         return json.dumps({
-            "quality_of_life_score": 0,
+            "quality_of_life_score": -1,
             "justification": f"Systeem Error: {str(e)}"
         })
 
