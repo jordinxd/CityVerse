@@ -4,20 +4,23 @@ import { latlonFromXY } from "./Core/CoordinateUtils.js";
 
 import { createBox, createModel } from "./Core/EntityFactory.js";
 
+// UI Imports
 import { ToolboxController } from "./ui/ToolboxController.js";
 import { AreaDrawer } from "./ui/drawing/AreaDrawer.js";
 import { StructureDrawer } from "./ui/drawing/StructureDrawer.js";
-import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { CameraDrawer } from "./ui/drawing/CameraDrawer.js";
-import { CameraService } from "./services/CameraService.js";
 
+// Data loading imports
 import { loadAreas } from "./ui/drawing/AreaLoader.js";
 import { loadStructures } from "./ui/drawing/StructureLoader.js";
 import { loadCameras } from "./ui/drawing/CameraLoader.js";
+
+// Editor imports
 import { EditorSelection } from "./ui/editor/EditorSelection.js";
+import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
+import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
-import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
 
 async function startAnalysis(btnElement) {
     const card = btnElement.closest('.agent-card');
@@ -84,22 +87,8 @@ window.onload = () => {
     const moveTool = new MoveTool(viewer, selection);
     const rotationTool = new RotationTool(viewer, selection);
 
-    // Example entities
-    const testLabelPos = latlonFromXY(220, 70);
-    viewer.entities.add({
-        id: "TestLabel",
-        position: Cesium.Cartesian3.fromDegrees(testLabelPos.lat, testLabelPos.lon, 50),
-        label: {
-            text: "TEST LABEL",
-            font: "30px sans-serif",
-            fillColor: Cesium.Color.YELLOW,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 3
-        }
-    });
-
-    createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
-    createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
+    // createBox(viewer, 200, 300, 50, 40, 70, 0, "building_tex.jpg");
+    // createBox(viewer, 240, 300, 50, 40, 70, 0, "building_tex.jpg");
 
     // Create tool instances
     const toolManager = new EditorToolManager(viewer, selection, {
@@ -184,6 +173,11 @@ window.onload = () => {
     createModel(viewer, "Cesium_Man.glb", latlonFromXY(220, 70), 0);
     createModel(viewer, "strange_building.glb", latlonFromXY(240, 70), 0);
 
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(5.7804619, 53.196691, 500),
+        duration: 2
+    });
+
     // Backend test
-    fetchBackendMessage(viewer);
+    // fetchBackendMessage(viewer);
 };
