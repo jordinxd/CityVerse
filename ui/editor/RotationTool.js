@@ -24,6 +24,7 @@ export class RotationTool {
         // Drag state
         this.dragStartPosition = null;
         this.dragStartRotation = null;
+        this.dragStartOrientation = null;
 
         // Gizmo rings
         this.ringEntities = [];
@@ -51,7 +52,7 @@ export class RotationTool {
     }
 
     activate() {
-        console.log("[RotationTool] Activated");
+        console.log("[RotationTool] Activated - calling showGizmo");
         this.active = true;
         this.showGizmo();
     }
@@ -69,18 +70,44 @@ export class RotationTool {
      * Rings are oriented with object's local axes
      */
     showGizmo() {
+        console.log("[RotationTool] showGizmo called, active:", this.active);
+        if (!this.active) {
+            console.log("[RotationTool] Tool not active, returning");
+            return;
+        }
+
         this.clearGizmo();
 
         const selected = this.selection.getSelected();
-        if (!selected) return;
+        console.log("[RotationTool] Selected entity:", selected);
+        if (!selected) {
+            console.log("[RotationTool] No selected entity, returning");
+            return;
+        }
 
         const pos = selected.position.getValue(Cesium.JulianDate.now());
-        if (!pos) return;
+        console.log("[RotationTool] Entity position:", pos);
+        if (!pos) {
+            console.log("[RotationTool] No position, returning");
+            return;
+        }
+
+        // Validate position values - ensure they're finite numbers
+        if (!this.isFiniteCartesian3(pos)) {
+            console.warn("[RotationTool] Invalid position for gizmo:", pos);
+            return;
+        }
 
         // Get entity's current rotation
         let rotation = 0;
         if (selected.properties?.rotation) {
             rotation = selected.properties.rotation.getValue() || 0;
+        }
+
+        // Validate rotation value
+        if (!Number.isFinite(rotation)) {
+            console.warn("[RotationTool] Invalid rotation value:", rotation);
+            rotation = 0;
         }
 
         // Three axis definitions
@@ -91,11 +118,17 @@ export class RotationTool {
         ];
 
         axes.forEach(({ name, color, axis }) => {
+            console.log("[RotationTool] Creating ring for axis:", name);
             const ring = this.createRotationRing(pos, color, name, axis, rotation);
-            this.ringEntities.push(ring);
+            if (ring) {
+                console.log("[RotationTool] Successfully created ring for axis:", name);
+                this.ringEntities.push(ring);
+            } else {
+                console.warn("[RotationTool] Failed to create ring for axis:", name);
+            }
         });
 
-        console.log("[RotationTool] Gizmo created with 3 rotation rings");
+        console.log("[RotationTool] Gizmo created with", this.ringEntities.length, "rotation rings");
     }
 
     /**
@@ -103,6 +136,7 @@ export class RotationTool {
      * Position it based on object rotation so rings are local-space aligned
      */
     createRotationRing(position, color, axisName, axisVector, entityRotation) {
+        console.log("[RotationTool] Creating ring for axis:", axisName, "at position:", position);
         const points = [];
         const steps = 32;
 
@@ -116,23 +150,27 @@ export class RotationTool {
         const selected = this.selection.getSelected();
         let orientationQuat;
         if (selected && selected.orientation) {
-            orientationQuat = selected.orientation;
+            orientationQuat = selected.orientation.getValue(Cesium.JulianDate.now());
+            console.log("[RotationTool] Using entity's orientation:", orientationQuat);
         } else {
             // Fall back to Z-axis rotation if no orientation yet
             orientationQuat = Cesium.Quaternion.fromAxisAngle(
                 Cesium.Cartesian3.UNIT_Z,
                 Cesium.Math.toRadians(entityRotation)
             );
+            console.log("[RotationTool] Using fallback orientation, rotation:", entityRotation);
         }
 
-        // Validate quaternion
-        if (!orientationQuat || typeof orientationQuat.x !== 'number') {
-            console.warn("[RotationTool] Invalid quaternion for ring", axisName);
-            return null;
+        // Validate quaternion components
+        if (!Number.isFinite(orientationQuat.x) || !Number.isFinite(orientationQuat.y) ||
+            !Number.isFinite(orientationQuat.z) || !Number.isFinite(orientationQuat.w)) {
+            console.warn("[RotationTool] Invalid quaternion components for ring", axisName, ":", orientationQuat);
+            orientationQuat = Cesium.Quaternion.IDENTITY;
         }
 
         // Get rotation matrix from quaternion
         const rotMatrix = Cesium.Matrix3.fromQuaternion(orientationQuat);
+        console.log("[RotationTool] Created rotation matrix for axis:", axisName);
 
         // Determine which plane to draw the ring on based on axis
         for (let i = 0; i < steps; i++) {
@@ -170,8 +208,8 @@ export class RotationTool {
             );
 
             // Validate rotated point
-            if (!pointRotated || typeof pointRotated.x !== 'number') {
-                console.warn("[RotationTool] Invalid rotated point for ring", axisName);
+            if (!this.isFiniteCartesian3(pointRotated)) {
+                console.warn("[RotationTool] Invalid rotated point for ring", axisName, ":", pointRotated);
                 return null;
             }
 
@@ -183,8 +221,8 @@ export class RotationTool {
             );
 
             // Validate world point
-            if (!worldPoint || typeof worldPoint.x !== 'number') {
-                console.warn("[RotationTool] Invalid world point for ring", axisName);
+            if (!this.isFiniteCartesian3(worldPoint)) {
+                console.warn("[RotationTool] Invalid world point for ring", axisName, ":", worldPoint);
                 return null;
             }
 
@@ -210,6 +248,8 @@ export class RotationTool {
                 zIndex: 100
             }
         });
+
+        console.log("[RotationTool] Created visible ring entity for axis:", axisName, "with", points.length, "points");
 
         ring.isGizmo = true;
         ring.axis = axisName;
@@ -264,6 +304,9 @@ export class RotationTool {
         this.activeAxis = pickedAxis;
         this.dragStartPosition = movement.position;
         this.dragStartRotation = selected.properties?.rotation?.getValue() || 0;
+        this.dragStartOrientation = selected.orientation ?
+            selected.orientation.getValue(Cesium.JulianDate.now()) :
+            Cesium.Quaternion.IDENTITY;
 
         // Lock camera during drag
         this.viewer.scene.screenSpaceCameraController.enableRotate = false;
@@ -307,37 +350,34 @@ export class RotationTool {
             localAxis = Cesium.Cartesian3.UNIT_Z;
         }
 
-        // Get current rotation angle from storage (only store heading/Z rotation for compatibility)
-        let currentRotation = this.dragStartRotation;
+        // Get current orientation from drag start (to accumulate rotations properly)
+        let currentOrientation = this.dragStartOrientation.clone();
 
-        // For Z-axis rotation, update the stored angle directly
-        if (this.activeAxis === "z") {
-            currentRotation = this.dragStartRotation + deltaRotation;
-        } else {
-            // For X/Y rotations, keep the Z rotation and compose with offset
-            currentRotation = this.dragStartRotation + deltaRotation;
-        }
+        // Create rotation quaternion for the drag amount around the selected axis
+        const rotationQuat = Cesium.Quaternion.fromAxisAngle(
+            localAxis,
+            Cesium.Math.toRadians(deltaRotation)
+        );
 
-        // Normalize rotation to 0-360
-        const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+        // Apply the rotation to the current orientation
+        // For local space rotation, multiply: newOrientation = rotationQuat * currentOrientation
+        const newOrientation = Cesium.Quaternion.multiply(
+            rotationQuat,
+            currentOrientation,
+            new Cesium.Quaternion()
+        );
 
-        // Store the rotation angle
-        selected.properties.rotation = normalizedRotation;
+        // Update the entity's orientation
+        selected.orientation = newOrientation;
 
-        // Apply visual orientation (using heading for consistency)
-        const pos = selected.position.getValue(Cesium.JulianDate.now());
+        // For backward compatibility, also update the rotation property with the Z-axis heading
         if (pos) {
-            selected.orientation = Cesium.Transforms.headingPitchRollQuaternion(
-                pos,
-                new Cesium.HeadingPitchRoll(
-                    Cesium.Math.toRadians(normalizedRotation),
-                    0,
-                    0
-                )
-            );
+            const headingPitchRoll = Cesium.Transforms.fixedFrameToHeadingPitchRoll(pos, selected.orientation);
+            const headingDegrees = Cesium.Math.toDegrees(headingPitchRoll.heading);
+            selected.properties.rotation = ((headingDegrees % 360) + 360) % 360;
         }
 
-        console.log("[RotationTool] Rotating", this.activeAxis, "by", deltaRotation, "° → total:", normalizedRotation);
+        console.log("[RotationTool] Rotating", this.activeAxis, "by", deltaRotation, "° - accumulated 3D rotation");
     }
 
     /**
@@ -444,6 +484,7 @@ export class RotationTool {
         this.activeAxis = null;
         this.dragStartPosition = null;
         this.dragStartRotation = null;
+        this.dragStartOrientation = null;
     }
 
     /**
@@ -451,5 +492,14 @@ export class RotationTool {
      */
     handlesClick(screenPos) {
         return this.active && this.getPickedAxis(screenPos) !== null;
+    }
+
+    isFiniteCartesian3(c) {
+        return (
+            c &&
+            Number.isFinite(c.x) &&
+            Number.isFinite(c.y) &&
+            Number.isFinite(c.z)
+        );
     }
 }

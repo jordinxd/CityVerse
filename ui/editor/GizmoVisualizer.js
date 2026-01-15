@@ -26,6 +26,7 @@ export class GizmoVisualizer {
                 width: 15,
                 material: new Cesium.Color(0, 0, 0, 0),
                 clampToGround: false,
+                arcType: Cesium.ArcType.NONE,
                 zIndex: 99
             }
         });
@@ -59,22 +60,56 @@ export class GizmoVisualizer {
         axisLineEntity.polyline.material = originalColor;
     }
 
-    static createConeArrowhead(viewer, position, color, axis) {
-        // Create arrowhead cone using cylinder primitive
-        const cone = viewer.entities.add({
-            position: position,
-            cylinder: {
-                length: 2,
-                topRadius: 0,
-                bottomRadius: 1,
-                material: color,
-                outline: false
-            }
-        });
-        cone.isGizmo = true;
-        cone.axis = axis;
-        cone.isCone = true;
+    static createConeArrowhead(viewer, startPos, endPos, color, axis) {
+  // Direction from start -> end
+  const dir = Cesium.Cartesian3.subtract(endPos, startPos, new Cesium.Cartesian3());
+  Cesium.Cartesian3.normalize(dir, dir);
 
-        return cone;
+  // Build a rotation that points the cylinder's "up" (Z) along dir
+  // We'll construct an ENU-like frame where:
+  // - forward = dir
+  // - right   = forward x worldUp (fallback if parallel)
+  const worldUp = Cesium.Cartesian3.UNIT_Z;
+  let right = Cesium.Cartesian3.cross(dir, worldUp, new Cesium.Cartesian3());
+
+  // If dir is nearly parallel to worldUp, use UNIT_X as fallback
+  if (Cesium.Cartesian3.magnitude(right) < 1e-6) {
+    right = Cesium.Cartesian3.cross(dir, Cesium.Cartesian3.UNIT_X, right);
+  }
+  Cesium.Cartesian3.normalize(right, right);
+
+  const up = Cesium.Cartesian3.cross(right, dir, new Cesium.Cartesian3());
+  Cesium.Cartesian3.normalize(up, up);
+
+  // Matrix3 columns: X=right, Y=up, Z=dir
+  const rot = new Cesium.Matrix3(
+    right.x, up.x, dir.x,
+    right.y, up.y, dir.y,
+    right.z, up.z, dir.z
+  );
+
+  const orientation = Cesium.Quaternion.fromRotationMatrix(rot);
+
+  // Position cone near the end
+  const conePos = Cesium.Cartesian3.lerp(startPos, endPos, 0.9, new Cesium.Cartesian3());
+
+  const cone = viewer.entities.add({
+    position: conePos,
+    orientation,
+    cylinder: {
+      length: 2,
+      topRadius: 0,
+      bottomRadius: 1,
+      material: color,
+      outline: false
     }
+  });
+
+  cone.isGizmo = true;
+  cone.axis = axis;
+  cone.isCone = true;
+
+  return cone;
+}
+
 }

@@ -18,110 +18,106 @@ import { latlonFromXY } from "../../Core/CoordinateUtils.js";
 
 export class MoveTool {
     constructor(viewer, selection) {
-        this.viewer = viewer;
-        this.selection = selection;
-        this.gizmoEntities = [];
-        this.active = false;
+    this.viewer = viewer;
+    this.selection = selection;
 
-        // Drag state
-        this.isDragging = false;
-        this.activeAxis = null;
-        this.dragStartPosition = null;
-        this.dragStartEntityPosition = null;
+    this.gizmoEntities = [];
+    this.active = false;
 
-        // Gizmo configuration
-        this.GIZMO_SCALE = 15; // Length of axis arrows
-        this.AXIS_WIDTH = 6;
-        this.AXIS_PICKUP_WIDTH = 15; // Wider for easier picking
-        this.CONE_HEIGHT = 3;
-        this.CONE_RADIUS = 1.5;
+    // Free-move state
+    this.moving = false;
+    this.originalPosition = null;
+    this.movementStart = null;
 
-        this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    // Gizmo drag state
+    this.isDragging = false;
+    this.activeAxis = null;
+    this.dragStartPosition = null;
+    this.dragStartEntityPosition = null;
 
-        // Mouse down: start drag on gizmo axis
-        this.handler.setInputAction(
-            (movement) => this.onMouseDown(movement),
-            Cesium.ScreenSpaceEventType.LEFT_DOWN
-        );
-
-        // Mouse move: update position while dragging
-        this.handler.setInputAction(
-            (movement) => this.onMouseMove(movement),
-            Cesium.ScreenSpaceEventType.MOUSE_MOVE
-        );
-
-        // Mouse up: commit final position
-        this.handler.setInputAction(
-            (movement) => this.onMouseUp(movement),
-            Cesium.ScreenSpaceEventType.LEFT_UP
-        );
-        this.moving = false;
-        this.originalPosition = null;
-        this.movementStart = null;
-
-        // Initialize handler but don't set actions until activated
-        this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    this.GIZMO_SCALE = 50; // Length of gizmo axes in meters
+    this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     }
+
 
     setupHandlers() {
-        // Mouse down to start moving (only when we have a selected entity)
-        this.handler.setInputAction((movement) => {
-            if (!this.active) return;
+  // LEFT_DOWN
+  this.handler.setInputAction((movement) => {
+    if (!this.active) return;
 
-            const selected = this.selection.getSelected();
-            if (!selected) return; // Don't start moving if nothing is selected
-
-            this.moving = true;
-            this.originalPosition = selected.position.getValue(Cesium.JulianDate.now());
-            this.movementStart = movement.position;
-
-            // Disable camera controls while moving
-            const c = this.viewer.scene.screenSpaceCameraController;
-            c.enableRotate = false;
-            c.enableTranslate = false;
-            c.enableZoom = false;
-            c.enableTilt = false;
-            c.enableLook = false;
-
-            console.log("[MoveTool] Started moving entity");
-        }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
-
-        // Mouse move to update position
-        this.handler.setInputAction((movement) => {
-            if (!this.active || !this.moving) return;
-
-            const selected = this.selection.getSelected();
-            if (!selected) return;
-
-            const newPosition = this.calculateNewPosition(selected, movement.endPosition);
-            if (newPosition) {
-                selected.position = newPosition;
-                this.updateGizmoPosition(newPosition); // Update gizmo position while moving
-            }
-        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-
-        // Mouse up to finish moving
-        this.handler.setInputAction(async () => {
-            if (!this.active || !this.moving) return;
-
-            this.moving = false;
-
-            // Re-enable camera controls after moving
-            const c = this.viewer.scene.screenSpaceCameraController;
-            c.enableRotate = true;
-            c.enableTranslate = true;
-            c.enableZoom = true;
-            c.enableTilt = true;
-            c.enableLook = true;
-
-            const selected = this.selection.getSelected();
-            if (selected) {
-                await this.persistPosition(selected);
-            }
-
-            console.log("[MoveTool] Finished moving entity");
-        }, Cesium.ScreenSpaceEventType.LEFT_UP);
+    // 1) If gizmo axis was clicked: start axis-drag and STOP
+    const axis = this.getPickedAxis(movement.position);
+    if (axis) {
+      this.onMouseDown(movement);  // your gizmo drag starter
+      return; // <- critical: prevents free-move starting too
     }
+
+    // 2) Otherwise: start free-move (only when clicking the selected entity)
+    const selected = this.selection.getSelected();
+    if (!selected) return;
+
+    // Optional but recommended: only allow free-move if you actually clicked the object,
+    // not empty terrain. (We'll tighten this in step 2.)
+    this.moving = true;
+    this.originalPosition = selected.position.getValue(Cesium.JulianDate.now());
+    this.movementStart = movement.position;
+
+    const c = this.viewer.scene.screenSpaceCameraController;
+    c.enableRotate = false;
+    c.enableTranslate = false;
+    c.enableZoom = false;
+    c.enableTilt = false;
+    c.enableLook = false;
+  }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+  // MOUSE_MOVE
+  this.handler.setInputAction((movement) => {
+    if (!this.active) return;
+
+    // If gizmo dragging, let gizmo logic handle it
+    if (this.isDragging) {
+      this.onMouseMove(movement);
+      return;
+    }
+
+    // Otherwise free-move
+    if (!this.moving) return;
+    const selected = this.selection.getSelected();
+    if (!selected) return;
+
+    const newPosition = this.calculateNewPosition(selected, movement.endPosition);
+    if (newPosition) {
+      selected.position = newPosition;
+      this.updateGizmoPosition(newPosition);
+    }
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+  // LEFT_UP
+  this.handler.setInputAction(async (movement) => {
+    if (!this.active) return;
+
+    // If gizmo dragging, commit gizmo drag
+    if (this.isDragging) {
+      await this.onMouseUp(movement);
+      return;
+    }
+
+    // Otherwise commit free-move
+    if (!this.moving) return;
+    this.moving = false;
+
+    const c = this.viewer.scene.screenSpaceCameraController;
+    c.enableRotate = true;
+    c.enableTranslate = true;
+    c.enableZoom = true;
+    c.enableTilt = true;
+    c.enableLook = true;
+
+    const selected = this.selection.getSelected();
+    if (selected) await this.persistPosition(selected);
+  }, Cesium.ScreenSpaceEventType.LEFT_UP);
+}
+
 
     removeHandlers() {
         // Remove all input actions to prevent interference with selection
@@ -189,22 +185,38 @@ export class MoveTool {
         this.clearGizmo();
 
         const selected = this.selection.getSelected();
+        console.log("[MoveTool] showGizmo selected:", selected);
         if (!selected) return;
 
-        const pos = selected.position.getValue(Cesium.JulianDate.now());
+        const pos = selected.position?.getValue(Cesium.JulianDate.now());
         if (!pos) return;
 
-        // Get entity's rotation/orientation to align axes with object
-        let rotation = 0;
-        if (selected.properties?.rotation) {
-            rotation = selected.properties.rotation.getValue() || 0;
+        if (!this.isFiniteCartesian3(pos)) return;
+
+        const rotationDeg = this.getRotationDegrees(selected);
+        let quaternion;
+
+        // Check if entity has full 3D orientation
+        if (selected.orientation) {
+            quaternion = selected.orientation.getValue(Cesium.JulianDate.now());
+            console.log("[MoveTool] Using entity's 3D orientation quaternion");
+        } else {
+            // Fallback to 2D rotation around Z-axis
+            quaternion = Cesium.Quaternion.fromAxisAngle(
+                Cesium.Cartesian3.UNIT_Z,
+                Cesium.Math.toRadians(rotationDeg)
+            );
+            console.log("[MoveTool] Using 2D rotation fallback, degrees:", rotationDeg);
         }
 
-        // Convert rotation to quaternion for proper axis alignment
-        const quaternion = Cesium.Quaternion.fromAxisAngle(
-            new Cesium.Cartesian3(0, 0, 1),
-            rotation
-        );
+        // Validate quaternion components
+        if (!Number.isFinite(quaternion.x) || !Number.isFinite(quaternion.y) ||
+            !Number.isFinite(quaternion.z) || !Number.isFinite(quaternion.w)) {
+            console.warn("[MoveTool] Invalid quaternion components, using identity");
+            quaternion = Cesium.Quaternion.IDENTITY;
+        }
+
+
 
         // Local axis vectors (object-space)
         const localAxes = [
@@ -229,13 +241,39 @@ export class MoveTool {
         ];
 
         localAxes.forEach(({ name, color, localVector }) => {
-            // Rotate local axis by entity's rotation using matrix
-            const rotationMatrix = Cesium.Matrix3.fromQuaternion(quaternion);
-            const rotatedVector = Cesium.Matrix3.multiplyByVector(
-                rotationMatrix,
-                localVector,
-                new Cesium.Cartesian3()
-            );
+            let rotatedVector;
+
+            // Try matrix approach first, fallback to simple rotation if it fails
+            try {
+                const rotationMatrix = Cesium.Matrix3.fromQuaternion(quaternion);
+                rotatedVector = Cesium.Matrix3.multiplyByVector(
+                    rotationMatrix,
+                    localVector,
+                    new Cesium.Cartesian3()
+                );
+
+                // If matrix multiplication failed, use simple 2D rotation
+                if (!this.isFiniteCartesian3(rotatedVector)) {
+                    const cos = Math.cos(Cesium.Math.toRadians(rotationDeg));
+                    const sin = Math.sin(Cesium.Math.toRadians(rotationDeg));
+
+                    rotatedVector = new Cesium.Cartesian3(
+                        localVector.x * cos - localVector.y * sin,
+                        localVector.x * sin + localVector.y * cos,
+                        localVector.z
+                    );
+                }
+            } catch (error) {
+                const cos = Math.cos(Cesium.Math.toRadians(rotationDeg));
+                const sin = Math.sin(Cesium.Math.toRadians(rotationDeg));
+                
+                rotatedVector = new Cesium.Cartesian3(
+                    localVector.x * cos - localVector.y * sin,
+                    localVector.x * sin + localVector.y * cos,
+                    localVector.z
+                );
+            }
+
             
             // Scale the rotated vector
             Cesium.Cartesian3.multiplyByScalar(
@@ -243,6 +281,13 @@ export class MoveTool {
                 this.GIZMO_SCALE,
                 rotatedVector
             );
+            
+            console.log(rotatedVector);
+            // Validate rotated vector
+            if (!this.isFiniteCartesian3(rotatedVector)) {
+                console.warn("[MoveTool] Invalid rotated vector for axis", name, ":", rotatedVector);
+                return; // Skip this axis
+            }
 
             // End position of axis
             const endPos = Cesium.Cartesian3.add(
@@ -250,6 +295,12 @@ export class MoveTool {
                 rotatedVector,
                 new Cesium.Cartesian3()
             );
+
+            // Validate end position
+            if (!this.isFiniteCartesian3(endPos)) {
+                console.warn("[MoveTool] Invalid end position for axis", name, ":", endPos);
+                return; // Skip this axis
+            }
 
             // Create axis line and pick helper using visualizer
             const { axisLine, pickHelper } = GizmoVisualizer.createGizmoAxis(
@@ -275,6 +326,12 @@ export class MoveTool {
                 0.85,
                 new Cesium.Cartesian3()
             );
+
+            // Validate cone position
+            if (!this.isFiniteCartesian3(conePosition)) {
+                console.warn("[MoveTool] Invalid cone position for axis", name, ":", conePosition);
+                return; // Skip cone creation
+            }
 
             const cone = GizmoVisualizer.createConeArrowhead(
                 this.viewer,
@@ -343,17 +400,20 @@ export class MoveTool {
         const selected = this.selection.getSelected();
         if (!selected) return;
 
-        // Get entity's rotation
-        let rotation = 0;
-        if (selected.properties?.rotation) {
-            rotation = selected.properties.rotation.getValue() || 0;
+        const rotationDeg = this.getRotationDegrees(selected);
+        let quaternion;
+
+        // Check if entity has full 3D orientation
+        if (selected.orientation) {
+            quaternion = selected.orientation.getValue(Cesium.JulianDate.now());
+        } else {
+            // Fallback to 2D rotation around Z-axis
+            quaternion = Cesium.Quaternion.fromAxisAngle(
+                Cesium.Cartesian3.UNIT_Z,
+                Cesium.Math.toRadians(rotationDeg)
+            );
         }
 
-        // Create rotation quaternion
-        const quaternion = Cesium.Quaternion.fromAxisAngle(
-            new Cesium.Cartesian3(0, 0, 1),
-            rotation
-        );
 
         // Get local axis vector for this axis
         const localAxisVector = this.getLocalAxisVector(this.activeAxis);
@@ -477,16 +537,36 @@ export class MoveTool {
         const selected = this.selection.getSelected();
         if (!selected) return;
 
-        // Get current rotation
-        let rotation = 0;
-        if (selected.properties?.rotation) {
-            rotation = selected.properties.rotation.getValue() || 0;
+        // Validate entity position
+        if (!this.isFiniteCartesian3(entityPos)) {
+            console.warn("[MoveTool] Invalid entity position for gizmo update:", entityPos);
+            return;
         }
 
-        const quaternion = Cesium.Quaternion.fromAxisAngle(
-            new Cesium.Cartesian3(0, 0, 1),
-            rotation
-        );
+        // Get current rotation - use same logic as showGizmo
+        let quaternion;
+        if (selected.orientation) {
+            quaternion = selected.orientation.getValue(Cesium.JulianDate.now());
+        } else {
+            // Fallback to 2D rotation around Z-axis
+            let rotation = 0;
+            if (selected.properties?.rotation) {
+                rotation = selected.properties.rotation.getValue() || 0;
+            }
+            if (!Number.isFinite(rotation)) rotation = 0;
+
+            quaternion = Cesium.Quaternion.fromAxisAngle(
+                Cesium.Cartesian3.UNIT_Z,
+                rotation
+            );
+        }
+
+        // Validate quaternion
+        if (!Number.isFinite(quaternion.x) || !Number.isFinite(quaternion.y) ||
+            !Number.isFinite(quaternion.z) || !Number.isFinite(quaternion.w)) {
+            console.warn("[MoveTool] Invalid quaternion in update, using identity");
+            quaternion = Cesium.Quaternion.IDENTITY;
+        }
 
         const axes = [
             { 
@@ -504,24 +584,64 @@ export class MoveTool {
         ];
 
         axes.forEach(({ name, localVector }) => {
-            // Rotate local axis by entity's rotation
-            const rotationMatrix = Cesium.Matrix3.fromQuaternion(quaternion);
-            const rotatedVector = Cesium.Matrix3.multiplyByVector(
-                rotationMatrix,
-                localVector,
-                new Cesium.Cartesian3()
-            );
+            let rotatedVector;
+
+            // Try matrix approach first, fallback to simple rotation if it fails
+            try {
+                const rotationMatrix = Cesium.Matrix3.fromQuaternion(quaternion);
+                rotatedVector = Cesium.Matrix3.multiplyByVector(
+                    rotationMatrix,
+                    localVector,
+                    new Cesium.Cartesian3()
+                );
+
+                // If matrix multiplication failed, use simple 2D rotation
+                if (!this.isFiniteCartesian3(rotatedVector)) {
+                    console.warn("[MoveTool] Matrix multiplication failed in update, using simple rotation for axis", name);
+                    const cos = Math.cos(rotation);
+                    const sin = Math.sin(rotation);
+
+                    rotatedVector = new Cesium.Cartesian3(
+                        localVector.x * cos - localVector.y * sin,
+                        localVector.x * sin + localVector.y * cos,
+                        localVector.z
+                    );
+                }
+            } catch (error) {
+                console.warn("[MoveTool] Matrix approach failed in update, using simple rotation for axis", name, error);
+                const cos = Math.cos(rotation);
+                const sin = Math.sin(rotation);
+
+                rotatedVector = new Cesium.Cartesian3(
+                    localVector.x * cos - localVector.y * sin,
+                    localVector.x * sin + localVector.y * cos,
+                    localVector.z
+                );
+            }
+
             Cesium.Cartesian3.multiplyByScalar(
                 rotatedVector,
                 this.GIZMO_SCALE,
                 rotatedVector
             );
 
+            // Validate rotated vector
+            if (!this.isFiniteCartesian3(rotatedVector)) {
+                console.warn("[MoveTool] Invalid rotated vector for axis", name, "in update:", rotatedVector);
+                return; // Skip this axis
+            }
+
             const endPos = Cesium.Cartesian3.add(
                 entityPos,
                 rotatedVector,
                 new Cesium.Cartesian3()
             );
+
+            // Validate end position
+            if (!this.isFiniteCartesian3(endPos)) {
+                console.warn("[MoveTool] Invalid end position for axis", name, "in update:", endPos);
+                return; // Skip this axis
+            }
 
             // Update axis line
             const axisLine = this.gizmoEntities.find(
@@ -542,12 +662,19 @@ export class MoveTool {
             // Update cone
             const cone = this.gizmoEntities.find((e) => e.isCone && e.axis === name);
             if (cone) {
-                cone.position = Cesium.Cartesian3.lerp(
+                const conePosition = Cesium.Cartesian3.lerp(
                     entityPos,
                     endPos,
                     0.85,
                     new Cesium.Cartesian3()
                 );
+
+                // Validate cone position
+                if (this.isFiniteCartesian3(conePosition)) {
+                    cone.position = conePosition;
+                } else {
+                    console.warn("[MoveTool] Invalid cone position for axis", name, "in update:", conePosition);
+                }
             }
         });
     }
@@ -777,4 +904,38 @@ export class MoveTool {
             console.error("Failed to persist position:", err);
         }
     }
+    
+    isFiniteCartesian3(c) {
+        return (
+            c &&
+            Number.isFinite(c.x) &&
+            Number.isFinite(c.y) &&
+            Number.isFinite(c.z)
+        );
+    }
+
+    getRotationDegrees(entity) {
+    // default
+    let rot = 0;
+
+    // Case 1: properties.rotation is a Property (most likely)
+    const p = entity?.properties?.rotation;
+    if (p && typeof p.getValue === "function") {
+        rot = p.getValue(Cesium.JulianDate.now());
+    } else if (p != null) {
+        // Case 2: properties.rotation is already a number
+        rot = p;
+    }
+
+    // Convert strings to number if needed
+    if (typeof rot === "string") rot = Number(rot);
+
+    // Final guard
+    if (!Number.isFinite(rot)) rot = 0;
+
+    return rot;
+    }
+
 }
+    
+    
