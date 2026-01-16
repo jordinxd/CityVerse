@@ -25,3 +25,4 @@ package-lock.json
 
 #personal application properties
 Backend/cityverse/src/main/resources/application.properties
+target/classes/application.properties

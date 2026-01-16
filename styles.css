@@ -1,16 +1,32 @@
-/* --- TOOLBOX CONTAINER --- */
+/* =========================================
+   GLOBAL RESET & BASICS
+   ========================================= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    overflow: hidden; /* Voorkomt scrollbars als panelen buiten beeld vallen */
+}
+
+/* =========================================
+   TOOLBOX CONTAINER (Linkerbovenhoek)
+   ========================================= */
 #toolbox {
     position: absolute;
     top: 20px;
     left: 20px;
     background: rgba(30, 30, 30, 0.8);
-    padding: 10px; /* Iets minder padding want de headers nemen ruimte in */
+    padding: 10px;
     border-radius: 10px;
     z-index: 999;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
-    width: 170px; /* Iets breder om de accordion headers ruimte te geven */
+    width: 170px;
     backdrop-filter: blur(5px);
     gap: 5px;
 }
@@ -39,7 +55,7 @@ button.accordion:hover, button.accordion.active {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Pijltje toevoegen */
+/* Pijltje toevoegen (Plus/Min) */
 button.accordion::after {
     content: '\002B'; /* Unicode plus teken (+) */
     color: #777;
@@ -62,15 +78,14 @@ div.panel {
 }
 
 div.panel.show {
-    display: block; /* Zichtbaar als 'show' class erop staat */
+    display: block;
     padding-top: 5px;
     padding-bottom: 5px;
 }
 
 /* --- DE ACTIE KNOPPEN (Binnen het panel) --- */
-/* Dit is de stijl die we eerder hadden, nu toegepast op buttons in panels */
 div.panel button {
-    width: 100%; /* Vult de breedte van de panel */
+    width: 100%;
     margin: 3px 0;
     padding: 8px;
     background: #303030;
@@ -96,12 +111,12 @@ div.panel button.active {
     border-color: #1e90ff;
 }
 
-/* Delete knop specifiek */
+/* Delete knop specifiek styling */
 div.panel button#btnDelete {
     border-color: #8b0000;
     background: rgba(139, 0, 0, 0.2);
     color: #ffcccc;
-    margin-top: 8px; /* Beetje extra afstand */
+    margin-top: 8px;
 }
 
 div.panel button#btnDelete:hover {
@@ -113,28 +128,31 @@ div.panel button#btnDelete.active {
     color: white;
 }
 
-/* --- RECHTER SIDEBAR --- */
+/* =========================================
+   SIDEBAR (Rechterkant)
+   ========================================= */
 #sidebar {
     position: absolute;
     top: 20px;
     right: 20px;
-    bottom: 20px; /* Vult de hoogte tot bijna onderaan */
+    bottom: 20px;
     width: 300px;
-    background: rgba(30, 30, 30, 0.8); /* Matcht met #toolbox */
+    background: rgba(30, 30, 30, 0.8);
     border-radius: 10px;
     z-index: 999;
     display: flex;
-    flex-direction: column; /* Zorgt dat footer onderaan blijft */
+    flex-direction: column;
     color: white;
     font-family: sans-serif;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    overflow: hidden; /* Zorgt dat content binnen de ronde hoeken blijft */
+    overflow: hidden;
+    backdrop-filter: blur(5px);
 }
 
-/* Tabs bovenin */
+/* --- TABS (Bovenin Sidebar) --- */
 .tabs {
     display: flex;
-    background: rgba(0, 0, 0, 0.2); /* Iets donkerder voor contrast */
+    background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid #555;
 }
 
@@ -157,14 +175,14 @@ div.panel button#btnDelete.active {
 
 .tab-btn.active {
     color: white;
-    border-bottom: 3px solid #1e90ff; /* Blauw accent (zoals de active button) */
+    border-bottom: 3px solid #1e90ff;
 }
 
-/* Middenstuk (Scrollbaar) */
+/* --- MIDDENSTUK (Scrollbaar) --- */
 .sidebar-content {
     padding: 15px;
-    flex: 1; /* Neemt alle beschikbare ruimte in */
-    overflow-y: auto; /* Scrollbalk alleen hier als lijst lang is */
+    flex: 1;
+    overflow-y: auto;
 }
 
 .sidebar-content h2 {
@@ -175,50 +193,57 @@ div.panel button#btnDelete.active {
     color: #eee;
 }
 
-/* Agent Kaartjes */
+/* --- AGENT KAARTJES (Cards) --- */
 .agent-card {
-    background: #303030; /* Zelfde als toolbox buttons */
+    background: #303030;
     border: 1px solid #555;
     border-radius: 4px;
     margin-bottom: 10px;
+    overflow: hidden; /* Zorgt dat content niet buiten de card valt */
 }
 
-.agent-header {
+/* Header Rij (Titel + Tools) */
+.agent-header-row {
     padding: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #444;
+    background: rgba(0,0,0,0.1); /* Iets donkerder voor contrast */
+}
+
+.agent-header-row span {
     font-weight: bold;
     font-size: 14px;
 }
 
-.agent-action {
-    padding: 8px 10px;
+/* Body Rij (Status Tekst + Grote Knop) */
+.agent-body-row {
+    padding: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
+}
+
+.status-text {
+    font-size: 0.9em;
     color: #ccc;
-    cursor: pointer;
-    transition: background 0.2s;
 }
 
-.agent-action:hover {
-    background: #404040;
-}
+/* --- KNOPPEN & ICONEN --- */
 
-/* Icon Buttons (klein & transparant) */
+/* Icon Buttons (klein & transparant) - Gebruikt in header row */
 .icon-btn {
     background: transparent;
     border: none;
     color: #aaa;
     cursor: pointer;
-    padding: 2px;
+    padding: 4px; /* Iets meer ruimte voor klikgemak */
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 3px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 .icon-btn:hover {
@@ -227,19 +252,95 @@ div.panel button#btnDelete.active {
 }
 
 .icon-svg {
-    width: 16px;
-    height: 16px;
+    width: 18px; /* Iets groter voor duidelijkheid */
+    height: 18px;
     fill: currentColor;
 }
 
-/* Footer (Vaste knop onderin) */
+/* Verwijder knop specifiek rood op hover */
+.icon-btn.delete-btn:hover {
+    color: #ff4444 !important;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Grote Actie Knop (Vierkant) */
+.action-btn.big-btn {
+    width: 40px;
+    height: 40px;
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0; /* Centraal icon */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.action-btn.big-btn:hover {
+    background-color: #ff7043; /* Iets lichter bij hover */
+}
+
+.action-btn.big-btn:active {
+    transform: scale(0.95); /* Klik effect */
+}
+
+/* Stop-knop logica (tijdens laden) */
+.action-btn.processing {
+    background-color: #333 !important; /* Donker tijdens laden */
+    border: 1px solid #555;
+}
+
+.action-btn.processing:hover {
+    border-color: #ff4444; /* Rode rand bij hover om te stoppen */
+}
+
+.action-btn.processing:hover svg {
+    fill: #ff4444 !important; /* Rood icoon bij hover */
+}
+
+/* Klaar status (Groen/Oranje/Rood wordt via JS geregeld, maar basis hier) */
+.action-btn.finished {
+    cursor: default;
+    pointer-events: none; /* Niet meer klikbaar */
+}
+
+/* --- ANIMATIES --- */
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+.spinning {
+    animation: spin 1.5s linear infinite;
+    fill: #1e90ff !important; /* Blauw tijdens laden */
+}
+
+/* --- DETAILS SECTION (Uitklapbaar) --- */
+.analysis-details {
+    display: none; /* Standaard verborgen */
+    background: #252525;
+    padding: 10px;
+    font-size: 13px;
+    color: #ddd;
+    border-top: 1px solid #444;
+    line-height: 1.4;
+}
+
+.analysis-details strong {
+    color: #fff;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* --- SIDEBAR FOOTER --- */
 .sidebar-footer {
     padding: 15px;
     border-top: 1px solid #555;
     background: rgba(30, 30, 30, 0.5);
 }
 
-/* Knop stijl consistent met toolbox buttons */
 .action-btn-main {
     width: 100%;
     padding: 10px;
@@ -251,40 +352,9 @@ div.panel button#btnDelete.active {
     font-weight: bold;
     cursor: pointer;
     text-transform: uppercase;
+    transition: background 0.2s;
 }
 
 .action-btn-main:hover {
     background: #505050;
-}
-
-/* Draaiende animatie voor zandloper */
-@keyframes spin { 100% { transform: rotate(360deg); } }
-
-.spinning {
-    animation: spin 2s linear infinite;
-    fill: #1e90ff !important; /* Blauw tijdens laden */
-}
-
-/* De dropdown container (standaard verborgen) */
-.analysis-details {
-    display: none;
-    background: #252525;
-    padding: 10px;
-    font-size: 13px;
-    color: #ddd;
-    border-top: 1px solid #444;
-}
-
-.analysis-details.open {
-    display: block;
-}
-
-.score-badge {
-    display: inline-block;
-    background: #1e90ff;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    margin-bottom: 5px;
 }

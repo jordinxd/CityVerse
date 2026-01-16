@@ -1,34 +1,50 @@
 package com.cityverse.backend.models;
 
-import java.util.List;
-import java.util.UUID;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.util.List;
+
+@Entity
+@Table(name = "Agent")
 public class Camera {
-    private String id; // Use String like Structure instead of UUID
-    private String type; // Add type like Structure
-    private List<Double> position; // [longitude, latitude, height] like structures
-    private Double rotation; // Like structures
-    private Double width; // Like structures
-    private Double depth; // Like structures
-    private Double height; // Like structures
+
+    @Id
+    @Column(name = "ID", nullable = false)
+    private String id;
+
+    // Converted to JSON string in DB. Crucial for placement.
+    @Column(name = "cameraPosition", columnDefinition = "JSON")
+    @Convert(converter = DoubleListConverter.class)
+    private List<Double> position;
+
+    @Column(name = "rotation")
+    private Double rotation;
+
+    @Column(name = "height")
+    private Double height;
+
+    // Kept this for your future screenshot feature
+    @Column(name = "imagePath")
+    private String imagePath;
+
+    // Added timestamp to track creation time
+    @Column(name = "timestamp", insertable = false, updatable = false)
+    private String timestamp;
 
     public Camera() {}
 
-    // Getters and setters
+    // --- GETTERS & SETTERS ---
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public List<Double> getPosition() {
@@ -47,27 +63,48 @@ public class Camera {
         this.rotation = rotation;
     }
 
-    public Double getWidth() {
-        return width;
-    }
-
-    public void setWidth(Double width) {
-        this.width = width;
-    }
-
-    public Double getDepth() {
-        return depth;
-    }
-
-    public void setDepth(Double depth) {
-        this.depth = depth;
-    }
-
     public Double getHeight() {
         return height;
     }
 
     public void setHeight(Double height) {
         this.height = height;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+}
+
+/**
+ * Converter to handle List<Double> <-> JSON String conversion.
+ */
+@Converter
+class DoubleListConverter implements AttributeConverter<List<Double>, String> {
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public String convertToDatabaseColumn(List<Double> attribute) {
+        try {
+            // If list is null or empty, return null to DB
+            return (attribute == null || attribute.isEmpty()) ? null : mapper.writeValueAsString(attribute);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error converting list to JSON", e);
+        }
+    }
+
+    @Override
+    public List<Double> convertToEntityAttribute(String dbData) {
+        try {
+            // Check for null or empty JSON string
+            if (dbData == null || dbData.isEmpty()) return null;
+            return mapper.readValue(dbData, new TypeReference<List<Double>>() {});
+        } catch (IOException e) {
+            throw new RuntimeException("Error converting JSON to list", e);
+        }
     }
 }
