@@ -21,7 +21,10 @@ import { EditorToolManager } from "./ui/editor/EditorToolManager.js";
 import { DeleteTool } from "./ui/drawing/DeleteTool.js";
 import { MoveTool } from "./ui/editor/MoveTool.js";
 import { RotationTool } from "./ui/editor/RotationTool.js";
+
 import { SidebarController } from "./ui/SidebarController.js";
+import { PropertiesPanel } from "./ui/PropertiesPanel.js";
+import { StatsPanel } from "./ui/StatsPanel.js";
 
 async function startAnalysis(btnElement) {
     const card = btnElement.closest('.agent-card');
@@ -101,6 +104,8 @@ window.onload = () => {
     const moveTool = new MoveTool(viewer, null); // Initialize without selection first
     const rotationTool = new RotationTool(viewer, null); // Initialize without selection first
     const selection = new EditorSelection(viewer, moveTool, rotationTool, cameraDrawer);
+    new PropertiesPanel(selection);
+    new StatsPanel(viewer);
     cameraDrawer.editorSelection = selection;
     moveTool.selection = selection; // Now set the reference
     rotationTool.selection = selection; // Now set the reference

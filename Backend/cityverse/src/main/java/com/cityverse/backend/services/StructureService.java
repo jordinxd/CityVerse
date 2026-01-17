@@ -49,6 +49,10 @@ public class StructureService extends JsonFileService<Structure> {
             if (changes.getStyle() != null)
                 current.setStyle(changes.getStyle());
 
+            if (changes.getType() != null)
+                current.setType(changes.getType());
+
+
             writeAll(list);
             return current;
         }

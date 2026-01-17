@@ -1,4 +1,6 @@
 import { StructureService } from "../../services/StructureService.js";
+import { applyStructureToEntity } from "./StructureEntityBinder.js";
+
 
 export class StructureDrawer {
     constructor(viewer) {
@@ -63,34 +65,10 @@ export class StructureDrawer {
     }
 
     spawnVisual(structure) {
-        const [lon, lat] = structure.position;
-
-        this.viewer.entities.add({
-            id: structure.id,
-            position: Cesium.Cartesian3.fromDegrees(lon, lat, structure.height / 2),
-            orientation: Cesium.Transforms.headingPitchRollQuaternion(
-            Cesium.Cartesian3.fromDegrees(lon, lat),
-            new Cesium.HeadingPitchRoll(
-                Cesium.Math.toRadians(structure.rotation ?? 0),
-                0,
-                0
-                )
-            ),
-            properties: {
-            rotation: structure.rotation ?? 0
-            },
-            box: {
-                dimensions: new Cesium.Cartesian3(
-                    structure.width,
-                    structure.depth,
-                    structure.height
-                ),
-                material: Cesium.Color.fromCssColorString(
-                    structure.style.color ?? "#ff00f9"
-                )
-            }
-        });
+    const entity = this.viewer.entities.add({ id: structure.id });
+    applyStructureToEntity(entity, structure);
     }
+    
 
     // Update an existing structure's visual representation
     updateVisual(structureId, updates) {

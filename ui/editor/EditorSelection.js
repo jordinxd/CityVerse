@@ -1,3 +1,5 @@
+
+
 /**
  * EditorSelection: Manages entity selection with tool-aware click handling
  * 
