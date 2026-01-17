@@ -105,4 +105,8 @@ public class CameraService {
     public void delete(String id) {
         repository.deleteById(id);
     }
+
+    public Camera findById(String id) {
+    return repository.findById(id).orElse(null);
+}
 }

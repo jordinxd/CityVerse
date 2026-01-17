@@ -43,39 +43,6 @@
     "color" : "#AA8833"
   }
 }, {
-  "id" : "68425782-df56-4e06-8bbf-a362e252e159",
-  "type" : "building",
-  "position" : [ 5.779193405937806, 53.19630427128458 ],
-  "rotation" : 0.0,
-  "width" : 6.0,
-  "depth" : 6.0,
-  "height" : 10.0,
-  "style" : {
-    "color" : "#AA8833"
-  }
-}, {
-  "id" : "560cc4d2-4da7-4801-8ff9-a1cb8189fafd",
-  "type" : "building",
-  "position" : [ 5.778572167722855, 53.19551519516258 ],
-  "rotation" : 0.0,
-  "width" : 6.0,
-  "depth" : 6.0,
-  "height" : 10.0,
-  "style" : {
-    "color" : "#AA8833"
-  }
-}, {
-  "id" : "a47dd636-9a6b-4139-9b96-d7fa4d3fbb8e",
-  "type" : "building",
-  "position" : [ 5.778598250324509, 53.19594958880974 ],
-  "rotation" : 0.0,
-  "width" : 6.0,
-  "depth" : 6.0,
-  "height" : 10.0,
-  "style" : {
-    "color" : "#AA8833"
-  }
-}, {
   "id" : "45fc077c-937d-45ed-8e22-b7b9991cec7d",
   "type" : "building",
   "position" : [ 5.775555775975823, 53.1965549320726 ],

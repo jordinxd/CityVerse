@@ -5,6 +5,7 @@ import com.cityverse.backend.repository.LLMAnalysisRepository;
 import com.cityverse.backend.services.CameraService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -91,6 +92,32 @@ public class AnalysisController {
         return llmAnalysisRepository.findTopByAgentIdOrderByIdDesc(agentId)
                 .map(analysis -> ResponseEntity.ok(analysis)) 
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(value = "/camera/{agentId}/image", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getAgentImage(@PathVariable String agentId) {
+        try {
+            // 1. Haal de agent op uit de DB
+            var agent = cameraService.findById(agentId);
+            if (agent == null || agent.getImagePath() == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 2
+            File imgFile = new File(agent.getImagePath());
+
+            if (!imgFile.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 3. Stuur de bytes terug naar de browser
+            byte[] imageBytes = Files.readAllBytes(imgFile.toPath());
+            return ResponseEntity.ok(imageBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     private String runPythonAiScript(String imagePath) throws Exception {

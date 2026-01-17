@@ -15,3 +15,4 @@ export const CameraService = {
     delete: (id) => Api.delete(`${BASE}/${id}`),
     getById: (id) => Api.get(`${BASE}/${id}`)
 };
+

@@ -45,7 +45,9 @@ export async function loadCameras(viewer, cameraDrawer) {
                     uri: "Cesium_Man.glb",
                     scale: 0.3,
                     minimumPixelSize: 40,
-                    maximumScale: 2.0
+                    maximumScale: 2.0,
+                    runAnimations: false,                
+                    shadows: Cesium.ShadowMode.DISABLED
                 }
             });
 

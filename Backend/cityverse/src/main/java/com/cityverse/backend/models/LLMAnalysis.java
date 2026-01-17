@@ -10,7 +10,7 @@ public class LLMAnalysis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "agentId", nullable = false)
+    @Column(name = "agent_Id", nullable = false)
     private String agentId;
 
     @Column(columnDefinition = "JSON")

@@ -15,9 +15,41 @@ body {
 /* =========================================
    TOOLBOX CONTAINER (Linkerbovenhoek)
    ========================================= */
+
+#btnFlyTop {
+    position: absolute;
+    top: 20px;       
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(30, 30, 30, 0.8);
+    color: white;
+    border: 1px solid #555;
+    border-radius: 8px; 
+    cursor: pointer;
+    z-index: 1000;      
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#btnFlyTop:hover {
+    background: #505050;
+    transform: translateY(-2px);
+}
+
+#btnFlyTop svg {
+    width: 24px;
+    height: 24px;
+}
+
+
 #toolbox {
     position: absolute;
-    top: 20px;
+    top: 70px;
     left: 20px;
     background: rgba(30, 30, 30, 0.8);
     padding: 10px;
@@ -131,6 +163,8 @@ div.panel button#btnDelete.active {
 /* =========================================
    SIDEBAR (Rechterkant)
    ========================================= */
+
+
 #sidebar {
     position: absolute;
     top: 20px;
@@ -228,6 +262,13 @@ div.panel button#btnDelete.active {
 .status-text {
     font-size: 0.9em;
     color: #ccc;
+}
+
+.analysis-image {
+    margin-block: 5px; 
+    border-radius: 4px;
+    overflow: hidden; 
+    border: 1px solid #555;
 }
 
 /* --- KNOPPEN & ICONEN --- */

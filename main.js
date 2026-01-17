@@ -29,9 +29,6 @@ window.onload = () => {
 
     const viewer = createViewer();
 
-
-   
-
     // Create tool instances
     // Pass the selection to cameraDrawer after both are initialized to avoid circular dependency
     const cameraDrawer = new CameraDrawer(viewer);
@@ -184,4 +181,15 @@ window.onload = () => {
         });
     }
 
+    const btnFlyTop = document.getElementById('btnFlyTop');
+    btnFlyTop.addEventListener('click', () => {
+        resetCameraView(viewer);
+    });
 };
+
+function resetCameraView(viewer) {
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(5.7804619, 53.196691, 500),
+        duration: 2
+    });
+}
