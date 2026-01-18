@@ -26,74 +26,11 @@ import { SidebarController } from "./ui/SidebarController.js";
 import { PropertiesPanel } from "./ui/PropertiesPanel.js";
 import { StatsPanel } from "./ui/StatsPanel.js";
 
-async function startAnalysis(btnElement) {
-    const card = btnElement.closest('.agent-card');
-    const polygonId = card.dataset.polygonId; // <-- Grab polygon ID here
-    const actionDiv = btnElement.closest('.agent-action');
-    const textSpan = actionDiv.querySelector('span');
-    const iconSvg = btnElement.querySelector('svg');
-
-    textSpan.innerText = "Bezig met analyse...";
-    iconSvg.innerHTML = '<path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"/>';
-    iconSvg.classList.add('spinning');
-    btnElement.disabled = true;
-
-    try {
-        // Pass polygonId to backend
-        const response = await fetch(`http://localhost:3000/api/run-ai?polygonId=${polygonId}`);
-        const data = await response.json();
-
-        iconSvg.classList.remove('spinning');
-        btnElement.disabled = false;
-        textSpan.innerText = "Bekijk analyse";
-        iconSvg.innerHTML = '<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>';
-
-        let detailsDiv = card.querySelector('.analysis-details');
-        if (!detailsDiv) {
-            detailsDiv = document.createElement('div');
-            detailsDiv.className = 'analysis-details';
-            card.appendChild(detailsDiv);
-        }
-
-        detailsDiv.innerHTML = `
-            <div><span class="score-badge">Score: ${data.quality_of_life_score}/100</span></div>
-            <div><em>"${data.justification}"</em></div>
-        `;
-
-        btnElement.onclick = (e) => {
-            e.stopPropagation();
-            detailsDiv.classList.toggle('open');
-            btnElement.style.transform = detailsDiv.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
-        };
-
-        detailsDiv.classList.add('open');
-        btnElement.style.transform = 'rotate(180deg)';
-
-    } catch (error) {
-        console.error(error);
-        textSpan.innerText = "Fout bij analyse";
-        iconSvg.classList.remove('spinning');
-        btnElement.disabled = false;
-    }
-}
-
-window.startAnalysis = startAnalysis;
-
 
 // --- MAIN INITIALISATIE ---
 window.onload = () => {
 
     const viewer = createViewer();
-
-    //Sidebar logics
-    const sidebar = new SidebarController({
-        onPlaceAgent: () => {
-            areaDrawer.cancel();
-            structureDrawer.deactivate();
-            toolManager.deactivateAll();
-            cameraDrawer.startPlacement();
-        }
-    });
 
     // Create tool instances
     // Pass the selection to cameraDrawer after both are initialized to avoid circular dependency
@@ -117,6 +54,17 @@ window.onload = () => {
     const toolManager = new EditorToolManager(viewer, selection, {
         move: moveTool,
         rotate: rotationTool
+    });
+
+     //Sidebar logics
+    const sidebar = new SidebarController({
+        onPlaceAgent: () => {
+            areaDrawer.cancel();
+            structureDrawer.deactivate();
+            toolManager.deactivateAll();
+            cameraDrawer.startPlacement();
+        },
+        cameraDrawer: cameraDrawer
     });
 
     // Load saved entities
@@ -153,7 +101,7 @@ window.onload = () => {
 
         if (polygon.length > 0) {
             try {
-                const response = await fetch("http://localhost:8080/areas", {
+                const response = await fetch("http://localhost:8081/areas", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name: name, polygon: polygon })
@@ -238,4 +186,15 @@ window.onload = () => {
         });
     }
 
+    const btnFlyTop = document.getElementById('btnFlyTop');
+    btnFlyTop.addEventListener('click', () => {
+        resetCameraView(viewer);
+    });
 };
+
+function resetCameraView(viewer) {
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(5.7804619, 53.196691, 500),
+        duration: 2
+    });
+}

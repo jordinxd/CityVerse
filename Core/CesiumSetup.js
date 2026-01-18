@@ -10,7 +10,8 @@ export function createViewer() {
     );
 
     const osm = new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://tile.openstreetmap.org/'
+        url: 'https://tile.openstreetmap.org/',
+        maximumLevel: 19
     });
 
     const viewer = new Cesium.Viewer("cesiumContainer", {

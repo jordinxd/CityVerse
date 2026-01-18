@@ -1,29 +1,33 @@
 import ollama
 import json
 import os
+import sys  
 from pathlib import Path
 
 # --- INSTELLINGEN ---
-# We bepalen het pad dynamisch, zodat Java het bestand altijd kan vinden
-# ongeacht vanuit welke map het commando wordt uitgevoerd.
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-IMAGE_PATH = os.path.join(SCRIPT_DIR, "city_2.jpg") # Zorg dat test.png in de AI_Functionality map staat
 MODEL_NAME = "moondream"
 
+# Java sends path as argument
+if len(sys.argv) > 1:
+    IMAGE_PATH = sys.argv[1]
+else:
+    # Fallback when testing wo Java
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    IMAGE_PATH = os.path.join(SCRIPT_DIR, "city_2.jpg") 
+
 def analyze_image(image_path):
-    # 1. Check of plaatje bestaat
+    # 1. Check for image
     if not Path(image_path).exists():
-        # Return een JSON object met de foutmelding, zodat de UI dit snapt
         return json.dumps({
             "quality_of_life_score": -1,
-            "justification": f"Error: Afbeelding niet gevonden op pad: {image_path}"
+            "justification": f"Python Error: Afbeelding niet gevonden op pad: {image_path}"
         })
 
     try:
         # 2. Vraag het aan Ollama
         response = ollama.chat(
             model=MODEL_NAME,
-            format='json',  # Forceer JSON output van het model
+            format='json',
             messages=[
                 {
                     'role': 'user',
@@ -39,25 +43,19 @@ def analyze_image(image_path):
                 }
             ],
             options={
-                "temperature": 0.2, # Laag houden voor consistentere, feitelijke antwoorden
+                "temperature": 0.2, 
             }
         )
         
-        # 3. Geef het antwoord terug (dit is al een JSON string)
+        # 3. Geef het antwoord terug
         return response['message']['content']
 
     except Exception as e:
-        # 4. Vang crashes af (bijv. als Ollama niet draait)
         return json.dumps({
             "quality_of_life_score": -1,
-            "justification": f"Systeem Error: {str(e)}"
+            "justification": f"Python Systeem Error: {str(e)}"
         })
 
-# --- HOOFD PROGRAMMA ---
 if __name__ == "__main__":
     # Voer de analyse uit
-    json_result = analyze_image(IMAGE_PATH)
-    
-    # Dit is de ENIGE print in het hele bestand.
-    # Dit wordt door Java opgevangen en teruggestuurd naar je website.
-    print(json_result)
+    print(analyze_image(IMAGE_PATH))
