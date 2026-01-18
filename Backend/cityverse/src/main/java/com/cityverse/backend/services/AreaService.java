@@ -60,7 +60,6 @@ public class AreaService {
             entity.setCoordinates(coordsJson);
 
             entity.setAgentId(1);
-            entity.setScenarioId(1);
             entity.setObjectId(1);
 
             PolygonEntity saved = polygonRepository.save(entity);

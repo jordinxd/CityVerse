@@ -11,9 +11,6 @@ public class PolygonEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "scenario_id")
-    private Integer scenarioId;
-
     @Column(name = "object_id")
     private Integer objectId;
 
@@ -32,8 +29,6 @@ public class PolygonEntity {
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
-    public Integer getScenarioId() { return scenarioId; }
-    public void setScenarioId(Integer scenarioId) { this.scenarioId = scenarioId; }
 
     public Integer getObjectId() { return objectId; }
     public void setObjectId(Integer objectId) { this.objectId = objectId; }
