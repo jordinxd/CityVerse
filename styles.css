@@ -9,11 +9,11 @@ body {
     margin: 0;
     padding: 0;
     font-family: sans-serif;
-    overflow: hidden; /* Voorkomt scrollbars als panelen buiten beeld vallen */
+    overflow: hidden; 
 }
 
 /* =========================================
-   TOOLBOX CONTAINER (Linkerbovenhoek)
+   TOOLBOX CONTAINER (Top Left)
    ========================================= */
 
 #btnFlyTop {
@@ -46,7 +46,6 @@ body {
     height: 24px;
 }
 
-
 #toolbox {
     position: absolute;
     top: 70px;
@@ -63,7 +62,7 @@ body {
     gap: 5px;
 }
 
-/* --- ACCORDION HEADERS (De Categorie Knoppen) --- */
+/* --- ACCORDION BUTTONS --- */
 button.accordion {
     background-color: transparent;
     color: #fff;
@@ -87,9 +86,8 @@ button.accordion:hover, button.accordion.active {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Pijltje toevoegen (Plus/Min) */
 button.accordion::after {
-    content: '\002B'; /* Unicode plus teken (+) */
+    content: '\002B'; 
     color: #777;
     font-weight: bold;
     float: right;
@@ -97,13 +95,13 @@ button.accordion::after {
 }
 
 button.accordion.active::after {
-    content: "\2212"; /* Unicode min teken (-) */
+    content: "\2212"; 
 }
 
-/* --- HET UITKLAPBARE DEEL (Panel) --- */
+/* --- PANELS --- */
 div.panel {
     padding: 0;
-    display: none; /* Standaard verborgen */
+    display: none; 
     background-color: transparent;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
@@ -115,7 +113,6 @@ div.panel.show {
     padding-bottom: 5px;
 }
 
-/* --- DE ACTIE KNOPPEN (Binnen het panel) --- */
 div.panel button {
     width: 100%;
     margin: 3px 0;
@@ -143,7 +140,6 @@ div.panel button.active {
     border-color: #1e90ff;
 }
 
-/* Delete knop specifiek styling */
 div.panel button#btnDelete {
     border-color: #8b0000;
     background: rgba(139, 0, 0, 0.2);
@@ -161,9 +157,8 @@ div.panel button#btnDelete.active {
 }
 
 /* =========================================
-   SIDEBAR (Rechterkant)
+   SIDEBAR (Right Side) - LAYOUT FIX
    ========================================= */
-
 
 #sidebar {
     position: absolute;
@@ -183,11 +178,11 @@ div.panel button#btnDelete.active {
     backdrop-filter: blur(5px);
 }
 
-/* --- TABS (Bovenin Sidebar) --- */
 .tabs {
     display: flex;
     background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid #555;
+    flex-shrink: 0; 
 }
 
 .tab-btn {
@@ -212,38 +207,99 @@ div.panel button#btnDelete.active {
     border-bottom: 3px solid #1e90ff;
 }
 
-/* --- MIDDENSTUK (Scrollbaar) --- */
+/* --- CONTENT AREA --- */
+/* FIX: Padding verwijderd hier, zodat de footer de rand kan raken */
 .sidebar-content {
-    padding: 15px;
+    padding: 0; 
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden; /* We scrollen nu per tab, niet globaal */
+    display: flex; 
+    flex-direction: column;
 }
 
+/* Content Title */
 .sidebar-content h2 {
-    margin-top: 0;
+    margin-top: 15px; /* Margin toegevoegd omdat padding weg is */
     font-size: 18px;
     text-align: center;
     margin-bottom: 15px;
     color: #eee;
+    flex-shrink: 0; 
 }
 
-/* --- AGENT KAARTJES (Cards) --- */
+/* --- TAB SPECIFICS --- */
+
+/* Tab: Properties & Gegevens (Moeten nu eigen padding & scroll hebben) */
+#tab-properties, #tab-gegevens {
+    padding: 15px;      /* Hier de padding teruggezet */
+    overflow-y: auto;   /* Hier scrollen aanzetten */
+    height: 100%;
+}
+
+/* Tab: Agents (Speciale Flex Layout voor footer) */
+#tab-agents {
+    display: flex;          
+    flex-direction: column; 
+    height: 100%;           
+}
+
+/* De lijst container */
+#agent-list-container {
+    flex: 1;           
+    overflow-y: auto;  
+    min-height: 0;     
+    padding: 15px;     /* Padding alleen rondom de kaartjes */
+    padding-bottom: 0; /* Onderkant niet dubbel padding geven met footer */
+}
+
+/* --- SIDEBAR FOOTER (Fixed Bottom) --- */
+.sidebar-footer {
+    padding: 15px;
+    border-top: 1px solid #555;
+    background: rgba(30, 30, 30, 0.95); /* Iets minder transparant voor contrast */
+    margin-top: auto; 
+    flex-shrink: 0;   
+}
+
+.action-btn-main {
+    width: 100%;
+    padding: 12px; /* Iets groter gemaakt */
+    background: #303030;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.action-btn-main:hover {
+    background: #505050;
+    border-color: #888;
+}
+
+.action-btn-main:active {
+    transform: translateY(1px);
+}
+
+/* --- AGENT CARDS --- */
 .agent-card {
     background: #303030;
     border: 1px solid #555;
     border-radius: 4px;
     margin-bottom: 10px;
-    overflow: hidden; /* Zorgt dat content niet buiten de card valt */
+    overflow: hidden; 
 }
 
-/* Header Rij (Titel + Tools) */
 .agent-header-row {
     padding: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #444;
-    background: rgba(0,0,0,0.1); /* Iets donkerder voor contrast */
+    background: rgba(0,0,0,0.2); 
 }
 
 .agent-header-row span {
@@ -251,7 +307,6 @@ div.panel button#btnDelete.active {
     font-size: 14px;
 }
 
-/* Body Rij (Status Tekst + Grote Knop) */
 .agent-body-row {
     padding: 10px;
     display: flex;
@@ -271,15 +326,13 @@ div.panel button#btnDelete.active {
     border: 1px solid #555;
 }
 
-/* --- KNOPPEN & ICONEN --- */
-
-/* Icon Buttons (klein & transparant) - Gebruikt in header row */
+/* --- ICONS & BUTTONS --- */
 .icon-btn {
     background: transparent;
     border: none;
     color: #aaa;
     cursor: pointer;
-    padding: 4px; /* Iets meer ruimte voor klikgemak */
+    padding: 4px; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -293,18 +346,16 @@ div.panel button#btnDelete.active {
 }
 
 .icon-svg {
-    width: 18px; /* Iets groter voor duidelijkheid */
+    width: 18px; 
     height: 18px;
     fill: currentColor;
 }
 
-/* Verwijder knop specifiek rood op hover */
 .icon-btn.delete-btn:hover {
     color: #ff4444 !important;
     background-color: rgba(255, 0, 0, 0.1);
 }
 
-/* Grote Actie Knop (Vierkant) */
 .action-btn.big-btn {
     width: 40px;
     height: 40px;
@@ -312,7 +363,7 @@ div.panel button#btnDelete.active {
     color: white;
     border: none;
     border-radius: 4px;
-    padding: 0; /* Centraal icon */
+    padding: 0; 
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -321,46 +372,44 @@ div.panel button#btnDelete.active {
 }
 
 .action-btn.big-btn:hover {
-    background-color: #ff7043; /* Iets lichter bij hover */
+    background-color: #ff7043; 
 }
 
 .action-btn.big-btn:active {
-    transform: scale(0.95); /* Klik effect */
+    transform: scale(0.95); 
 }
 
-/* Stop-knop logica (tijdens laden) */
 .action-btn.processing {
-    background-color: #333 !important; /* Donker tijdens laden */
+    background-color: #333 !important; 
     border: 1px solid #555;
 }
 
 .action-btn.processing:hover {
-    border-color: #ff4444; /* Rode rand bij hover om te stoppen */
+    border-color: #ff4444; 
 }
 
 .action-btn.processing:hover svg {
-    fill: #ff4444 !important; /* Rood icoon bij hover */
+    fill: #ff4444 !important; 
 }
 
-/* Klaar status (Groen/Oranje/Rood wordt via JS geregeld, maar basis hier) */
 .action-btn.finished {
     cursor: default;
-    pointer-events: none; /* Niet meer klikbaar */
+    pointer-events: none; 
 }
 
-/* --- ANIMATIES --- */
+/* --- ANIMATIONS --- */
 @keyframes spin { 
     100% { transform: rotate(360deg); } 
 }
 
 .spinning {
     animation: spin 1.5s linear infinite;
-    fill: #1e90ff !important; /* Blauw tijdens laden */
+    fill: #1e90ff !important; 
 }
 
-/* --- DETAILS SECTION (Uitklapbaar) --- */
+/* --- DETAILS SECTION --- */
 .analysis-details {
-    display: none; /* Standaard verborgen */
+    display: none; 
     background: #252525;
     padding: 10px;
     font-size: 13px;
@@ -373,29 +422,4 @@ div.panel button#btnDelete.active {
     color: #fff;
     display: block;
     margin-bottom: 5px;
-}
-
-/* --- SIDEBAR FOOTER --- */
-.sidebar-footer {
-    padding: 15px;
-    border-top: 1px solid #555;
-    background: rgba(30, 30, 30, 0.5);
-}
-
-.action-btn-main {
-    width: 100%;
-    padding: 10px;
-    background: #303030;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background 0.2s;
-}
-
-.action-btn-main:hover {
-    background: #505050;
 }
