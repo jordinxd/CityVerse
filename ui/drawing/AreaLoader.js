@@ -3,6 +3,12 @@ import { AreaService } from "../../services/AreaService.js";
 export async function loadAreas(viewer) {
     const areas = await AreaService.getAll();
 
+    // Check if areas data is valid
+    if (!areas || !Array.isArray(areas)) {
+        console.warn("[AreaLoader] No areas data received from backend. Skipping area loading.");
+        return;
+    }
+
     areas.forEach(area => {
         const style = area.style ?? {};
 

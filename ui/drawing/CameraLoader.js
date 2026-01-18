@@ -9,6 +9,13 @@ export async function loadCameras(viewer, cameraDrawer) {
     try {
         // 1. Fetch data from Backend (Database)
         const cameras = await CameraService.getAll();
+
+        // Check if cameras data is valid
+        if (!cameras || !Array.isArray(cameras)) {
+            console.warn("[CameraLoader] No cameras data received from backend. Skipping camera loading.");
+            return;
+        }
+
         console.log(`[CameraLoader] Found ${cameras.length} cameras in database.`);
 
         // 2. Loop through each camera and place it on the map
