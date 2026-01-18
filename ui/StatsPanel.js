@@ -1,5 +1,5 @@
 // StatsPanel.js
-import { StructureCatalog } from "../core/StructureCatalog.js";
+import { StructureCatalog } from "../Core/StructureCatalog.js";
 
 export class StatsPanel {
     constructor(viewer, structureService = null) {
