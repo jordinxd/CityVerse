@@ -1,4 +1,4 @@
-export const BACKEND_URL = "http://localhost:8081";
+export const BACKEND_URL = "http://localhost:8080";
 
 export const Api = {
     get: (url) => fetch(url).then(async r => {

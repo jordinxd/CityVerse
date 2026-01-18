@@ -195,7 +195,7 @@ export class SidebarController {
             textSpan.innerText = "Analyseren...";
 
             // Stap 3: Backend
-            const response = await fetch(`http://localhost:8081/api/analyze-pov`, {
+            const response = await fetch(`http://localhost:8080/api/analyze-pov`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -290,7 +290,7 @@ export class SidebarController {
             textSpan.innerText = "Analyzing...";
 
             // Step 3: Backend
-            const response = await fetch(`http://localhost:8081/api/analyze-pov`, {
+            const response = await fetch(`http://localhost:8080/api/analyze-pov`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -332,7 +332,7 @@ export class SidebarController {
 
     async checkExistingAnalysis(agentId, card, btnElement, textSpan, iconSvg) {
         try {
-            const response = await fetch(`http://localhost:8081/api/analysis?agentId=${agentId}`);
+            const response = await fetch(`http://localhost:8080/api/analysis?agentId=${agentId}`);
             if (response.ok) {
                 const dbRecord = await response.json();
                 let analysisData;
@@ -377,7 +377,7 @@ export class SidebarController {
             card.appendChild(detailsDiv);
         }
 
-        const imageUrl = `http://localhost:8081/api/camera/${agentId}/image?t=${new Date().getTime()}`;
+        const imageUrl = `http://localhost:8080/api/camera/${agentId}/image?t=${new Date().getTime()}`;
         detailsDiv.innerHTML =
             `<strong>Analysis:</strong>${data.justification}
             <div class="analysis-image"">

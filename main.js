@@ -101,7 +101,7 @@ window.onload = () => {
 
         if (polygon.length > 0) {
             try {
-                const response = await fetch("http://localhost:8081/areas", {
+                const response = await fetch("http://localhost:8080/areas", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name: name, polygon: polygon })
