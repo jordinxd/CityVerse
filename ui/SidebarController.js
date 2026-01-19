@@ -12,7 +12,7 @@ export class SidebarController {
         // De hoofdcontainer (voor tab switches)
         this.container = document.querySelector('#tab-agents');
         
-        // NIEUW: De container specifiek voor de lijst
+        // Agent lijst container
         this.listContainer = document.querySelector('#agent-list-container');
 
         this.setupEvents();

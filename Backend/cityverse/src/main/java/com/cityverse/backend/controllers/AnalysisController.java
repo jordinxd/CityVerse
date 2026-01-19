@@ -164,6 +164,7 @@ public class AnalysisController {
         // Pad: cityverse/AI_Functionality/ai.py
         if (!Files.exists(scriptPath)) {
             Path fallbackPath = rootDir
+                .resolve("Backend")
                     .resolve("cityverse")
                     .resolve("AI_Functionality")
                     .resolve("ai.py");

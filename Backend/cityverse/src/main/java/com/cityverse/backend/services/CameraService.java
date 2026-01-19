@@ -40,21 +40,18 @@ public class CameraService {
      */
     public String saveScreenshot(String agentId, String base64Image) {
     try {
-        // AANGEPAST: We slaan op in de AI_Functionality map in je project root
         Path storageDir = Paths.get("AI_Functionality", "screenshots");
         
-        // Zorg dat de map bestaat
         if (!Files.exists(storageDir)) {
             Files.createDirectories(storageDir);
         }
 
-        // ... rest van de logica (Base64 cleanen) ...
-        
+        // ... Create filename and add png extention ...
         String cleanBase64 = base64Image.contains(",") ? base64Image.split(",")[1] : base64Image;
         String filename = "agent_" + agentId + "_" + System.currentTimeMillis() + ".png";
         Path destinationFile = storageDir.resolve(filename);
 
-        // ... opslaan ...
+        // ... Base 64 to PNG ...
         byte[] imageBytes = Base64.getDecoder().decode(cleanBase64);
         try (FileOutputStream fos = new FileOutputStream(destinationFile.toFile())) {
             fos.write(imageBytes);
