@@ -1,7 +1,10 @@
 import { jest } from '@jest/globals';
 import { MoveTool } from '../ui/editor/MoveTool.js';
 
-// Mock dependencies
+/*
+  Mock GizmoVisualizer so the MoveTool does not create real 3D gizmos.
+  The constructor returns an object with the methods used by MoveTool.
+*/
 jest.mock('../ui/editor/GizmoVisualizer.js', () => ({
   GizmoVisualizer: jest.fn(() => ({
     createGizmo: jest.fn(),
@@ -10,6 +13,10 @@ jest.mock('../ui/editor/GizmoVisualizer.js', () => ({
   })),
 }));
 
+/*
+  Mock backend services to avoid real network or database operations.
+  These mocks allow us to verify which data would be sent.
+*/
 jest.mock('../services/StructureService.js', () => ({
   StructureService: {
     update: jest.fn(),
@@ -22,10 +29,14 @@ jest.mock('../services/CameraService.js', () => ({
   },
 }));
 
+/*
+  Mock coordinate conversion utilities used during movement calculations.
+*/
 jest.mock('../Core/CoordinateUtils.js', () => ({
   latlonFromXY: jest.fn(),
 }));
 
+// Import mocked services after jest.mock
 import { StructureService } from '../services/StructureService.js';
 import { CameraService } from '../services/CameraService.js';
 
@@ -35,10 +46,13 @@ describe('MoveTool', () => {
   let moveTool;
 
   beforeEach(() => {
-    // Reset all mocks
+    // Reset all mock call history and behavior before every test
     jest.clearAllMocks();
 
-    // Create mock viewer
+    /*
+      Create a minimal fake Cesium viewer object that provides
+      only the properties and functions required by MoveTool.
+    */
     mockViewer = {
       scene: {
         canvas: {},
@@ -54,7 +68,11 @@ describe('MoveTool', () => {
         },
       },
       camera: {
-        getPickRay: jest.fn(() => ({ origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } })),
+        // Simulate ray casting from mouse position into the scene
+        getPickRay: jest.fn(() => ({
+          origin: { x: 0, y: 0, z: 0 },
+          direction: { x: 0, y: 0, z: -1 },
+        })),
       },
       entities: {
         add: jest.fn(),
@@ -62,18 +80,23 @@ describe('MoveTool', () => {
       },
     };
 
-    // Create mock selection
+    /*
+      Mock selection system used to determine which entity is currently selected.
+    */
     mockSelection = {
       getSelected: jest.fn(),
       onChange: jest.fn(),
     };
 
-    // Create MoveTool instance
+    // Create a new MoveTool instance for each test
     moveTool = new MoveTool(mockViewer, mockSelection);
   });
 
   afterEach(() => {
-    // Clean up
+    /*
+      Ensure the tool is deactivated after each test to avoid
+      event handlers or internal state leaking into other tests.
+    */
     if (moveTool.active) {
       moveTool.deactivate();
     }
@@ -81,6 +104,7 @@ describe('MoveTool', () => {
 
   describe('constructor', () => {
     test('should initialize with correct default values', () => {
+      // Verify constructor assigns dependencies and default state correctly
       expect(moveTool.viewer).toBe(mockViewer);
       expect(moveTool.selection).toBe(mockSelection);
       expect(moveTool.active).toBe(false);
@@ -91,29 +115,37 @@ describe('MoveTool', () => {
     });
 
     test('should create ScreenSpaceEventHandler', () => {
+      // MoveTool should create an input handler for mouse interaction
       expect(moveTool.handler).toBeDefined();
     });
   });
 
   describe('activate/deactivate', () => {
     test('should activate tool correctly', () => {
+      // Spy on internal setup functions
       const setupHandlersSpy = jest.spyOn(moveTool, 'setupHandlers');
       const showGizmoSpy = jest.spyOn(moveTool, 'showGizmo');
 
+      // Activate the tool
       moveTool.activate();
 
+      // Verify state change and setup behavior
       expect(moveTool.active).toBe(true);
       expect(setupHandlersSpy).toHaveBeenCalledTimes(1);
       expect(showGizmoSpy).toHaveBeenCalledTimes(1);
     });
 
     test('should deactivate tool correctly', () => {
+      // Simulate already-active tool
       moveTool.active = true;
+
       const removeHandlersSpy = jest.spyOn(moveTool, 'removeHandlers');
       const clearGizmoSpy = jest.spyOn(moveTool, 'clearGizmo');
 
+      // Deactivate the tool
       moveTool.deactivate();
 
+      // Verify state reset and cleanup behavior
       expect(moveTool.active).toBe(false);
       expect(moveTool.moving).toBe(false);
       expect(moveTool.isDragging).toBe(false);
@@ -124,10 +156,10 @@ describe('MoveTool', () => {
 
   describe('persistPosition', () => {
     test('should persist camera position correctly', async () => {
-      // Arrange
+      // Arrange: mock a camera entity
       const mockEntity = {
         id: 'camera1',
-        model: {}, // Indicates it's a camera
+        model: {}, // Presence of model indicates camera entity
         position: {
           getValue: jest.fn(() => ({ x: 1, y: 2, z: 3 })),
         },
@@ -143,19 +175,19 @@ describe('MoveTool', () => {
       // Act
       await moveTool.persistPosition(mockEntity);
 
-      // Assert
+      // Assert: camera service is called with converted payload
       expect(CameraService.update).toHaveBeenCalledWith('camera1', {
-        position: [1, 2, 3], // Direct values from the mock
+        position: [1, 2, 3],
         height: 3,
         rotation: 45,
       });
     });
 
     test('should persist structure position correctly', async () => {
-      // Arrange
+      // Arrange: mock a structure entity
       const mockEntity = {
         id: 'structure1',
-        box: {}, // Indicates it's a structure
+        box: {}, // Presence of box indicates structure entity
         position: {
           getValue: jest.fn(() => ({ x: 1, y: 2, z: 3 })),
         },
@@ -166,9 +198,9 @@ describe('MoveTool', () => {
       // Act
       await moveTool.persistPosition(mockEntity);
 
-      // Assert
+      // Assert: only longitude/latitude are stored for structures
       expect(StructureService.update).toHaveBeenCalledWith('structure1', {
-        position: [1, 2], // Only lon/lat for structures
+        position: [1, 2],
       });
     });
 
@@ -185,12 +217,13 @@ describe('MoveTool', () => {
       const error = new Error('Update failed');
       StructureService.update.mockRejectedValue(error);
 
+      // Silence console output while capturing calls
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       // Act
       await moveTool.persistPosition(mockEntity);
 
-      // Assert
+      // Assert: error is logged but does not crash execution
       expect(StructureService.update).toHaveBeenCalledTimes(1);
       expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to persist position:', error);
 
@@ -198,14 +231,14 @@ describe('MoveTool', () => {
     });
 
     test('should handle missing rotation property', async () => {
-      // Arrange
+      // Arrange: camera entity without rotation property
       const mockEntity = {
         id: 'camera1',
         model: {},
         position: {
           getValue: jest.fn(() => ({ x: 1, y: 2, z: 3 })),
         },
-        properties: {}, // No rotation property
+        properties: {},
       };
 
       CameraService.update.mockResolvedValue({ success: true });
@@ -213,11 +246,11 @@ describe('MoveTool', () => {
       // Act
       await moveTool.persistPosition(mockEntity);
 
-      // Assert
+      // Assert: default rotation of 0 is applied
       expect(CameraService.update).toHaveBeenCalledWith('camera1', {
         position: [1, 2, 3],
         height: 3,
-        rotation: 0, // Default rotation
+        rotation: 0,
       });
     });
   });
@@ -227,13 +260,13 @@ describe('MoveTool', () => {
       // Arrange
       const mockEntity = {
         position: {
-          getValue: jest.fn(() => ({ x: 0, y: 0, z: 100 })), // 100m height
+          getValue: jest.fn(() => ({ x: 0, y: 0, z: 100 })), // Original height
         },
       };
 
       const mousePosition = { x: 100, y: 100 };
 
-      // Mock globe.pick to return a position
+      // Simulate globe intersection result
       mockViewer.scene.globe.pick.mockReturnValue({ x: 10, y: 20, z: 50 });
 
       // Act
@@ -243,7 +276,8 @@ describe('MoveTool', () => {
       expect(mockViewer.camera.getPickRay).toHaveBeenCalledWith(mousePosition);
       expect(mockViewer.scene.globe.pick).toHaveBeenCalledTimes(1);
       expect(result).toBeDefined();
-      // Result should maintain original height (100) but use picked lon/lat
+
+      // Result should combine picked X/Y with original Z (height preservation)
     });
 
     test('should return null when pick ray fails', () => {
@@ -336,13 +370,15 @@ describe('MoveTool', () => {
     test('should return 0 for invalid rotation values', () => {
       expect(moveTool.getRotationDegrees({})).toBe(0);
       expect(moveTool.getRotationDegrees({ properties: {} })).toBe(0);
-      expect(moveTool.getRotationDegrees({
-        properties: {
-          rotation: {
-            getValue: jest.fn(() => NaN),
-          },
-        },
-      })).toBe(0);
+      expect(
+          moveTool.getRotationDegrees({
+            properties: {
+              rotation: {
+                getValue: jest.fn(() => NaN),
+              },
+            },
+          })
+      ).toBe(0);
     });
   });
 });
